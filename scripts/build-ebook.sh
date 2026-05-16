@@ -35,12 +35,67 @@ flatten_for_ebook() {
   '
 }
 
+# Nomes de ficheiro .md e pastas do repo → linguagem de livro (quem só lê o EPUB).
+readerize_for_ebook() {
+  perl -pe '
+    s/Este arquivo é/Esta seção é/g;
+    s/\*\*Aqui \((`)?PRE-REQUISITOS\.md(`)?\)\*\*/**Nesta seção (início do livro)**/g;
+    s/\*\*Cada lab \((`)?labs\/lab-\*\.md(`)?\)\*\*/**Cada capítulo de laboratório**/g;
+    s/\*\*(`)?PLANO_DE_ESTUDO\.md(`)?\*\*/**Plano de estudo (repositório Git)**/g;
+    s/`labs\/lab-\*\.md`/cada capítulo de laboratório/g;
+    s/labs\/lab-\*\.md/cada capítulo de laboratório/g;
+    s/`PRE-REQUISITOS\.md`/esta seção/g;
+    s/PRE-REQUISITOS\.md/Pré-requisitos/g;
+    s/`PLANO_DE_ESTUDO\.md`/plano de estudo (repositório Git)/g;
+    s/PLANO_DE_ESTUDO\.md/plano de estudo (repositório Git)/g;
+    s/`CONVENCOES_EDITORIAIS\.md`/convenções editoriais/g;
+    s/CONVENCOES_EDITORIAIS\.md/convenções editoriais/g;
+    s/`SIGLAS-RAPIDAS\.md`/siglas rápidas/g;
+    s/`capitulos\/README\.md`/índice dos capítulos de contexto/g;
+    s/capitulos\/README\.md/índice dos capítulos de contexto/g;
+    s/`modulos\/`/capítulo de teoria /g;
+    s/`labs\/`/capítulo de laboratório /g;
+    s/→ teoria \(`modulos\/`\)/→ teoria/g;
+    s/→ lab \(`labs\/`\)/→ laboratório/g;
+    s/teoria \(`modulos\/`\)/teoria/g;
+    s/lab \(`labs\/`\)/laboratório/g;
+    s/Glossário e apêndices \(`apps\/`, `deploy\/`\) no final/Glossário e apêndices de referência no final/g;
+    s/— capítulo em `modulos\/`/— teoria/g;
+    s/— `labs\/`/— laboratório/g;
+    s/Manifests em `deploy\/k8s\/`/Manifests Kubernetes do laboratório/g;
+    s/em `deploy\/k8s\/`/no material de deploy do laboratório/g;
+    s/`docs\/[^`]+`/documento de apoio (repositório Git)/g;
+    s/· `PLANO`/· plano de estudo/g;
+    s/· PLANO §/· checklist (repositório), §/g;
+    s/Checklist completo: plano de estudo \(repositório Git\)\./Checklists por módulo ficam no repositório Git (fora deste volume)./g;
+    s/Detalhe: plano de estudo \(repositório Git\)\./Checklists expandidos: repositório Git do projeto./g;
+    s/O arquivo legado `06-evolucao[^`]+`[^.]*\./Os módulos 5–7 têm capítulos de contexto dedicados neste livro./g;
+    s/Monorepo \*\*financial-applications\*\*: `apps\/`, `deploy\/`, `labs\/`, `modulos\/`\./Código e manifests do laboratório ficam no repositório Git **financial-applications** (opcional para quem for reproduzir os passos)./g;
+    s/plano de estudo com checklists detalhados permanece no repositório Git/Checklists detalhados e código-fonte ficam no repositório Git/g;
+    s/teoria \(`modulos\/`\) e laboratório \(`labs\/`\)/teoria e laboratório/g;
+    s/\| Checklist \| plano de estudo \(repositório Git\) \|/| Checklist detalhado | Repositório Git (online) |/g;
+    s/`labs\/[^`]+`/laboratório desta parte do livro/g;
+    s/Laboratório: laboratório desta parte do livro/Laboratório: capítulo prático desta parte/g;
+    s/Laboratório completo: laboratório desta parte do livro/Laboratório completo: capítulo prático desta parte/g;
+    s/para laboratório desta parte do livro/para o laboratório desta parte/g;
+    s/Arquivos de referência para laboratório desta parte do livro/Arquivos de referência para o laboratório desta parte/g;
+    s/Lista completa: laboratório desta parte do livro/Lista completa: exercícios de falha e troubleshooting/g;
+    s/Ver laboratório desta parte do livro/Ver exercícios de falha e troubleshooting/g;
+    s/`REFERENCIAS\.md`/bibliografia do repositório/g;
+    s/REFERENCIAS\.md/bibliografia/g;
+    s/`README\.md`/documentação do repositório/g;
+    s/`deploy\/[^`]+`/material de deploy do laboratório/g;
+    s/para os `\.md` dos módulos/para os capítulos de teoria/g;
+    s/Imagens geradas para os `\.md`/Imagens geradas para os capítulos/g;
+  '
+}
+
 prepare_content() {
   local base_dir="$1"
   if [[ -n "$base_dir" ]]; then
-    fix_images "$base_dir" | flatten_for_ebook
+    fix_images "$base_dir" | flatten_for_ebook | readerize_for_ebook
   else
-    flatten_for_ebook
+    flatten_for_ebook | readerize_for_ebook
   fi
 }
 
@@ -147,6 +202,7 @@ EPUB_CSS="$ROOT/ebook/epub.css"
 
 pandoc_args=(
   --from markdown+raw_html
+  --no-highlight
   --toc
   --toc-depth=2
   --resource-path="$RESOURCE_PATH"

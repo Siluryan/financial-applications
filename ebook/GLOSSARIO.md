@@ -328,6 +328,6 @@ Referência rápida dos termos usados neste livro. Cada entrada traz o significa
 
 ---
 
-As **siglas rápidas** para consulta durante a leitura estão no início do livro: [`SIGLAS-RAPIDAS.md`](SIGLAS-RAPIDAS.md).
+As **siglas rápidas** para consulta durante a leitura estão no início do livro.
 
 *Última atualização alinhada aos módulos 0–7 e labs do repositório `financial-applications`.*

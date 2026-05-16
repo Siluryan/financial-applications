@@ -1,14 +1,14 @@
 # Pré-requisitos do curso (conhecimento)
 
-Este arquivo é só sobre **conhecimento e hábitos** — o que ajuda a entender o texto e os módulos **antes** de abrir qualquer lab.
+Esta seção é só sobre **conhecimento e hábitos** — o que ajuda a entender o texto e os módulos **antes** de abrir qualquer laboratório.
 
 Não confunda com:
 
 | Onde | O que lista |
 |------|-------------|
-| **Aqui (`PRE-REQUISITOS.md`)** | Base do **curso inteiro** (HTTP, Docker, K8s, Python, SQL) |
-| **Cada lab (`labs/lab-*.md`)** | Três blocos: **Conhecimento deste lab** · **Labs anteriores** · **Ambiente** (ferramentas, RAM, cluster) |
-| **`PLANO_DE_ESTUDO.md`** | Ordem das ondas e checklists — aponta para este arquivo |
+| **Nesta seção (início do livro)** | Base do **curso inteiro** (HTTP, Docker, K8s, Python, SQL) |
+| **Cada capítulo de laboratório** | Três blocos: **Conhecimento deste lab** · **Labs anteriores** · **Ambiente** (ferramentas, RAM, cluster) |
+| **Plano de estudo (repositório Git)** | Ordem das ondas e checklists — aponta para o conhecimento acima |
 
 Se um lab diz “precisa do Lab 00”, isso é **lab anterior** (você já subiu o cluster), não “precisa ser expert em Kubernetes”.
 
@@ -40,11 +40,11 @@ Não precisa, neste curso: desenhar API do zero, OAuth completo ou HTTP/2 em pro
 
 | Precisa entender | Uso no curso |
 |------------------|--------------|
-| **Pod**, **Deployment**, **Service** | Manifests em `deploy/k8s/` |
+| **Pod**, **Deployment**, **Service** | Manifests do laboratório |
 | `kubectl apply -k`, `get pods`, `logs` | Operar labs no *kind* |
 | **Namespace** | Recursos em `core-banking` |
 
-Ferramentas: [kind](https://kind.sigs.k8s.io/), `kubectl`. O [Lab 00](../labs/lab-00-kind-banco-minimo.md) guia o primeiro deploy — lá estão os requisitos de **ambiente** (Docker, RAM, etc.).
+Ferramentas: [kind](https://kind.sigs.k8s.io/), `kubectl`. O **Lab 00** (Onda 0) guia o primeiro deploy — lá estão os requisitos de **ambiente** (Docker, RAM, etc.).
 
 ## Python 3.11+
 
@@ -69,4 +69,4 @@ Ler e ajustar código **FastAPI** pequeno; `pip install` de libs dos labs; vari�
 
 ## O que o curso não ensina do zero
 
-Python para iniciantes, redes em profundidade, certificação CKA. Se faltar base, comece por `docker compose up` e o [Lab 00](../labs/lab-00-kind-banco-minimo.md) antes do *kind*.
+Python para iniciantes, redes em profundidade, certificação CKA. Se faltar base, comece por `docker compose up` e o **Lab 00** antes do *kind*.

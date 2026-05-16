@@ -36,9 +36,9 @@ chmod +x scripts/build-ebook.sh
 
 Requer [pandoc](https://pandoc.org/) para EPUB/PDF. Sem pandoc, usa-se só o `.md` unificado em `ebook/build/`.
 
-O build **não** inclui linhas `Fonte: caminho/arquivo.md`. Links viram **texto** (URLs deixam de ser clicáveis); **imagens dos módulos são preservadas** (`modulos/diagramas/*.png`). Regenere diagramas com `./scripts/render-diagramas.sh` antes do ebook se editou `.mmd`. Listas `- [ ]` dos labs viram **bullets** (sem checkbox clicável no ereader).
+O build **não** inclui linhas `Fonte: caminho/arquivo.md`. Links viram **texto** (URLs deixam de ser clicáveis); referências a ficheiros `.md` e pastas do repo são **reescritas** para linguagem de livro (ex.: “cada capítulo de laboratório” em vez de `labs/lab-*.md`). **Imagens dos módulos são preservadas** (`modulos/diagramas/*.png`). Regenere diagramas com `./scripts/render-diagramas.sh` antes do ebook se editou `.mmd`. Listas `- [ ]` dos labs viram **bullets** (sem checkbox clicável no ereader).
 
-**Acabamento de livro:** capa em [`assets/cover.png`](assets/cover.png) (retrato 1600×2560), folha de [`colofon.md`](colofon.md), metadados Dublin Core (autor: Guilherme Dias), [`sobre-o-autor.md`](sobre-o-autor.md) no **final** do volume (após glossário e apêndice), sumário em português, quebra de página antes de cada parte/módulo. Tipografia: [`epub.css`](epub.css) — corpo **9pt**.
+**Acabamento de livro:** capa em [`assets/cover.png`](assets/cover.png) (retrato 1600×2560), folha de [`colofon.md`](colofon.md), metadados Dublin Core (autor: Guilherme Dias), [`sobre-o-autor.md`](sobre-o-autor.md) no **final** do volume (após glossário e apêndice), sumário em português, quebra de página antes de cada parte/módulo. Tipografia: [`epub.css`](epub.css) — corpo **9pt**. Blocos de código sem fundo claro fixo nem *syntax highlighting* colorido (`--no-highlight`), para leitura aceitável em modo escuro do leitor.
 
 Manjaro / Arch:
 

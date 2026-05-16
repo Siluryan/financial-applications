@@ -3,15 +3,15 @@
 | Trilha | Quando usar |
 |--------|-------------|
 | **`docker compose`** | Iterar rápido no *Pix*, Postgres, Redis, Kafka, Jaeger |
-| **kind + `deploy/k8s`** | Espinha dorsal completa: mesh, canary, políticas, DR |
+| **kind + manifests Kubernetes** | Espinha dorsal completa: mesh, canary, políticas, DR |
 
 ## Como o livro está organizado
 
 Cada **módulo** segue a sequência:
 
 1. **Contexto histórico** — por que a ferramenta existe; incidentes reais quando aplicável  
-2. **Teoria** — capítulo em `modulos/`  
-3. **Laboratório** — `labs/`
+2. **Teoria** — capítulo conceitual do módulo  
+3. **Laboratório** — passos práticos
 
 Não leia todos os contextos de uma vez no início; leia o contexto **da parte** em que você está.
 
@@ -42,14 +42,14 @@ Não leia todos os contextos de uma vez no início; leia o contexto **da parte**
 | 9–12 | Módulo 7 | Labs 07a–07f |
 | 13+ | Exercícios de falha | Integração |
 
-Detalhe: [`PLANO_DE_ESTUDO.md`](../../PLANO_DE_ESTUDO.md).
+Checklists expandidos: repositório Git do projeto.
 
 ## Conhecimento, lab e ambiente
 
 | Tipo | Onde ler |
 |------|----------|
 | **Conhecimento do curso** (HTTP, Docker, K8s…) | [Pré-requisitos](../PRE-REQUISITOS.md) — **uma vez** no início |
-| **Cada laboratório** | Seção *Antes de começar* em `labs/lab-*.md` (conhecimento **deste** lab + labs anteriores + ambiente) |
+| **Cada laboratório** | Seção *Antes de começar* (conhecimento **deste** lab + labs anteriores + ambiente) |
 
 | RAM (ambiente) | Sugestão |
 |----------------|----------|
@@ -63,7 +63,6 @@ Detalhe: [`PLANO_DE_ESTUDO.md`](../../PLANO_DE_ESTUDO.md).
 |-------------|------|
 | Sigla na hora | [Siglas rápidas](../SIGLAS-RAPIDAS.md) (início do livro) |
 | Termo com analogia | [Glossário](../GLOSSARIO.md) (final) |
-| Índice dos contextos | [capitulos/README.md](README.md) |
-| Checklist | [PLANO_DE_ESTUDO.md](../../PLANO_DE_ESTUDO.md) |
+| Checklist detalhado | Repositório Git (online) |
 
 Comece: [Módulo 0](../../modulos/modulo-00-fundamentos-distribuidos.md) após [por que microsserviços](01-por-que-microsservicos.md).

@@ -16,18 +16,18 @@ Antes de mergulhar nos módulos, vale ter à mão a tabela de **[siglas rápidas
 
 ## Convenções
 
-Termos técnicos em inglês (*retry*, *consumer lag*, *circuit breaker*) são explicados na primeira vez de cada capítulo; ver [siglas rápidas](SIGLAS-RAPIDAS.md) e [`CONVENCOES_EDITORIAIS.md`](CONVENCOES_EDITORIAIS.md). Nomes: domínio *Pix*; recurso `servico-pix`.
+Termos técnicos em inglês (*retry*, *consumer lag*, *circuit breaker*) são explicados na primeira vez de cada capítulo; ver [siglas rápidas](SIGLAS-RAPIDAS.md) e [convenções editoriais](CONVENCOES_EDITORIAIS.md). Nomes: domínio *Pix*; recurso `servico-pix`.
 
 ## Organização
 
 | Ordem | Conteúdo |
 |-------|----------|
-| 1 | Cada **parte** do livro: **contexto histórico** → teoria (`modulos/`) → lab (`labs/`) |
-| 2 | [Glossário](GLOSSARIO.md) e apêndices (`apps/`, `deploy/`) no final |
+| 1 | Cada **parte** do livro: **contexto histórico** → teoria → laboratório |
+| 2 | [Glossário](GLOSSARIO.md) e apêndices de referência no final |
 
-O contexto não fica todo no início: antes do Módulo 2 vêm Kafka e observabilidade; antes do Módulo 4, Postgres/Redis e incidentes de dados; antes do Módulo 7, LGPD/PCI e estudos de caso de vazamento e conformidade. Índice: [`capitulos/README.md`](capitulos/README.md). Ritmo: [Como estudar](capitulos/07-como-estudar-com-este-livro.md).
+O contexto não fica todo no início: antes do Módulo 2 vêm Kafka e observabilidade; antes do Módulo 4, Postgres/Redis e incidentes de dados; antes do Módulo 7, LGPD/PCI e estudos de caso de vazamento e conformidade. Ritmo: [Como estudar com este livro](capitulos/07-como-estudar-com-este-livro.md).
 
-Checklist completo: [`PLANO_DE_ESTUDO.md`](../PLANO_DE_ESTUDO.md).
+Checklists detalhados por módulo ficam no **repositório Git** do projeto (fora deste volume).
 
 ## Espinha dorsal (ondas)
 
@@ -51,16 +51,16 @@ Leitores se perdem quando tudo vira uma lista só. Neste material:
 | Tipo | Onde está | Exemplo |
 |------|-----------|---------|
 | **Conhecimento do curso** | [Pré-requisitos](PRE-REQUISITOS.md) (este livro, início) | “Sei o que é GET/POST e JSON” |
-| **Lab anterior** | Seção *Antes de começar* de cada `labs/lab-*.md` | “Já rodei o Lab 00 — cluster no ar” |
+| **Lab anterior** | Seção *Antes de começar* de cada capítulo de laboratório | “Já rodei o Lab 00 — cluster no ar” |
 | **Ambiente** | Mesma seção *Antes de começar* do lab | “Docker rodando, 4 GB RAM livres, `helm` instalado” |
 
 O [capítulo Pré-requisitos](PRE-REQUISITOS.md) cobre só **conhecimento** (HTTP, Docker, K8s, Python, SQL). Cada laboratório diz, à parte, o que você precisa **já ter executado** e o que precisa **instalado na máquina**.
 
 **Ritmo sugerido:** um módulo por semana. Em **8 GB de RAM**, não suba Istio, Kafka e Jaeger juntos — detalhes em [Pré-requisitos → Máquina](PRE-REQUISITOS.md#máquina-e-ritmo).
 
-## Repositório
+## Repositório (opcional)
 
-Monorepo **financial-applications**: `apps/`, `deploy/`, `labs/`, `modulos/`. `docker compose` para iteração rápida; **kind** para a trilha completa. O *Pix* no repo já usa outbox, idempotência, retry/breaker e OTLP.
+Quem quiser **reproduzir** os passos encontra código e manifests no GitHub (**financial-applications**). `docker compose` serve para iteração rápida; **kind** para a trilha completa. O *Pix* de referência já usa outbox, idempotência, retry/breaker e OTLP.
 
 ## Como começar
 

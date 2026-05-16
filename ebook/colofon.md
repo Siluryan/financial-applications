@@ -10,7 +10,7 @@ Material educacional de **Guilherme Dias** (https://github.com/Siluryan). Objeti
 
 Não substitui consultoria jurídica, regulatória ou de segurança. Cenários e valores são fictícios para estudo.
 
-**Como este volume está organizado:** cada parte traz contexto histórico, teoria (`modulos/`) e laboratório (`labs/`). O plano de estudo com checklists detalhados permanece no repositório Git para quem estuda com cluster *kind* e IDE.
+**Como este volume está organizado:** cada parte traz contexto histórico, teoria e laboratório em sequência. Checklists detalhados e código-fonte ficam no repositório Git para quem reproduz os passos com cluster *kind* e IDE.
 
 **Tecnologias no percurso:** Kubernetes (*kind*), Python (FastAPI), Apache Kafka, OpenTelemetry, Istio, Postgres, Redis, Backstage, Kyverno, Pact.
 
