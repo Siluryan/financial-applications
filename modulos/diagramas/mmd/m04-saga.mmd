@@ -1,0 +1,10 @@
+sequenceDiagram
+  participant O as Orquestrador
+  participant A as Servico-Contas
+  participant B as Servico-Fidelidade
+
+  O->>A: débito
+  A-->>O: OK
+  O->>B: pontos
+  B-->>O: ERRO
+  O->>A: compensação (estorno)

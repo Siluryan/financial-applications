@@ -1,0 +1,11 @@
+flowchart LR
+  subgraph tx["Uma transação Postgres"]
+    db["UPDATE saldo / Pix"]
+    ob["INSERT outbox"]
+    db --- ob
+  end
+
+  tx --> commit["COMMIT"]
+  commit --> worker["Relay worker"]
+  worker --> kafka["Kafka"]
+  worker --> sent["marca sent"]

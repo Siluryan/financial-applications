@@ -1,0 +1,9 @@
+flowchart TB
+  subgraph pilares["Três pilares"]
+    M["Métricas<br/>quantos / quão rápido"]
+    L["Logs<br/>o que aconteceu"]
+    T["Traces<br/>onde demorou"]
+  end
+
+  M --- L --- T
+  pilares --> corr["Mesmo trace_id<br/>liga os três"]

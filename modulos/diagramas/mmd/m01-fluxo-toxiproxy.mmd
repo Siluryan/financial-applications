@@ -1,0 +1,9 @@
+flowchart LR
+  cliente["Cliente"]
+  pix["servico-pix"]
+  tox["Toxiproxy<br/>(opcional)"]
+  lim["servico-limites"]
+
+  cliente --> pix
+  pix --> tox --> lim
+  pix -.->|"sem caos"| lim

@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: servico-credito
+  namespace: core-banking
+  labels:
+    app: servico-credito
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: servico-credito
+  template:
+    metadata:
+      labels:
+        app: servico-credito
+        version: v1
+    spec:
+      containers:
+        - name: app
+          image: servico-credito:lab
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: SERVICE_VERSION
+              value: v1
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: servico-credito
+  namespace: core-banking
+spec:
+  selector:
+    app: servico-credito
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000

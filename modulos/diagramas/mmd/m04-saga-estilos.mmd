@@ -1,0 +1,13 @@
+flowchart TB
+  subgraph orch [Orquestração]
+    O[Saga orchestrator]
+    O --> S1[servico-pix]
+    O --> S2[servico-limites]
+    O --> S3[compensação]
+  end
+  subgraph chor [Coreografia]
+    E1[evento pix.iniciado]
+    E1 --> W1[worker limites]
+    W1 --> E2[evento limite.reservado]
+    E2 --> W2[worker antifraude]
+  end

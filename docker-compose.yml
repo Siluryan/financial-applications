@@ -1,0 +1,124 @@
+services:
+  kafka:
+    image: apache/kafka:3.8.0
+    hostname: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: "1"
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: "1"
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: "0"
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: labsecret
+      POSTGRES_DB: pixlab
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.54
+    ports:
+      - "16686:16686"
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.96.0
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./deploy/observability/collector-config.yaml:/etc/otelcol/config.yaml:ro
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    depends_on:
+      - jaeger
+
+  servico-limites:
+    build:
+      context: ./apps/servico-limites
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8000"
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_SERVICE_NAME: servico-limites
+    depends_on:
+      - otel-collector
+
+  servico-pix:
+    build:
+      context: ./apps/servico-pix
+      dockerfile: Dockerfile
+    ports:
+      - "${PIX_HOST_PORT:-8000}:8000"
+    environment:
+      LIMITES_URL: http://servico-limites:8000
+      HTTP_TIMEOUT: "5"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_TOPIC_PIX_INICIADO: pix.iniciado
+      DATABASE_URL: postgresql://postgres:labsecret@postgres:5432/pixlab
+      REDIS_URL: redis://redis:6379/0
+      PIX_USE_OUTBOX: "true"
+      PIX_SYNC_KAFKA: "false"
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_SERVICE_NAME: servico-pix
+    depends_on:
+      servico-limites:
+        condition: service_started
+      kafka:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
+
+  worker-outbox-relay:
+    build:
+      context: ./apps/worker-outbox-relay
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://postgres:labsecret@postgres:5432/pixlab
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_TOPIC_PIX_INICIADO: pix.iniciado
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_SERVICE_NAME: worker-outbox-relay
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      otel-collector:
+        condition: service_started
+
+  servico-credito:
+    build:
+      context: ./apps/servico-credito
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8000"
+    environment:
+      SERVICE_VERSION: v1

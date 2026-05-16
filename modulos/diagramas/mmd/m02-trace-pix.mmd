@@ -1,0 +1,11 @@
+sequenceDiagram
+  participant C as Cliente
+  participant P as servico-pix
+  participant L as servico-limites
+  participant K as Kafka
+
+  C->>P: POST /v1/pix<br/>traceparent
+  P->>L: GET limits<br/>mesmo trace_id
+  L-->>P: 200 OK
+  P->>K: pix.iniciado<br/>header traceparent
+  Note over C,K: Um trace, vários spans

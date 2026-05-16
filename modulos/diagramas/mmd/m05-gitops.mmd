@@ -1,0 +1,9 @@
+flowchart LR
+  commit["Git commit<br/>deploy/"]
+  argo["Argo CD"]
+  cluster["Cluster kind"]
+  grafana["Grafana / alertas"]
+
+  commit --> argo --> cluster
+  cluster --> grafana
+  grafana -.->|"rollback: revert Git"| commit

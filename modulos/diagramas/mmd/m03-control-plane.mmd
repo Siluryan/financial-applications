@@ -1,0 +1,14 @@
+flowchart LR
+  subgraph cp["Control plane"]
+    istiod["Istiod"]
+  end
+
+  subgraph dp["Data plane (cada pod)"]
+    e1["Envoy sidecar"]
+    e2["Envoy sidecar"]
+  end
+
+  dev["Manifests YAML<br/>no Git"] --> istiod
+  istiod -->|"certs + config"| e1
+  istiod -->|"certs + config"| e2
+  e1 <-->|"mTLS + políticas"| e2

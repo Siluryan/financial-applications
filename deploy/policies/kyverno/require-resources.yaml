@@ -1,0 +1,25 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-resources-core-banking
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: require-limits
+      match:
+        any:
+          - resources:
+              kinds: [Deployment]
+              namespaces: [core-banking]
+      validate:
+        message: "Deployments em core-banking precisam de resources.limits (cpu e memory)"
+        pattern:
+          spec:
+            template:
+              spec:
+                containers:
+                  - name: "*"
+                    resources:
+                      limits:
+                        memory: "?*"
+                        cpu: "?*"

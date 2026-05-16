@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker-outbox-relay
+  namespace: core-banking
+  labels:
+    app: worker-outbox-relay
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: worker-outbox-relay
+  template:
+    metadata:
+      labels:
+        app: worker-outbox-relay
+    spec:
+      containers:
+        - name: relay
+          image: worker-outbox-relay:lab
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: pix-dados
+                  key: DATABASE_URL
+                  optional: true
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: kafka-bootstrap.kafka.svc.cluster.local:9092
+            - name: KAFKA_TOPIC_PIX_INICIADO
+              value: pix.iniciado
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-collector.observability.svc.cluster.local:4317
+            - name: OTEL_SERVICE_NAME
+              value: worker-outbox-relay
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi

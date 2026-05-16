@@ -1,0 +1,14 @@
+flowchart TB
+  subgraph topic [Tópico pix.iniciado]
+    P0[Partição 0]
+    P1[Partição 1]
+  end
+  P0 --> C1[Consumer instância A]
+  P1 --> C2[Consumer instância B]
+  subgraph cg [Consumer group pix-workers]
+    C1
+    C2
+  end
+  Broker[(Kafka broker)] --> topic
+  C1 --> Proc[Processamento idempotente]
+  C2 --> Proc

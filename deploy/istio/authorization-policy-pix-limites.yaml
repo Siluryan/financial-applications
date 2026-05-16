@@ -1,0 +1,20 @@
+# Ajuste o ServiceAccount do Pix se usar outro nome no seu cluster.
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: so-pix-chama-limites
+  namespace: core-banking
+spec:
+  selector:
+    matchLabels:
+      app: servico-limites
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/core-banking/sa/default
+      to:
+        - operation:
+            methods: ["GET"]
+            paths: ["/v1/limits/*", "/healthz"]

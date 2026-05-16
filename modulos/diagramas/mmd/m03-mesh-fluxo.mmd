@@ -1,0 +1,18 @@
+flowchart TB
+  subgraph pix["servico-pix pod"]
+    appPix["app Python<br/>:8000"]
+    envoyPix["Envoy sidecar<br/>:15001"]
+    appPix -->|"tráfego interceptado"| envoyPix
+  end
+
+  subgraph lim["servico-limites pod"]
+    envoyLim["Envoy sidecar<br/>:15001"]
+    appLim["app Python<br/>:8000"]
+    envoyLim --> appLim
+  end
+
+  envoyPix <-->|"mTLS"| envoyLim
+
+  istiod["Istiod<br/>(control plane)"]
+  istiod -.->|"certificados + políticas"| envoyPix
+  istiod -.->|"certificados + políticas"| envoyLim

@@ -1,0 +1,10 @@
+flowchart TD
+  req["Requisição HTTP<br/>GET /v1/limits/acc_demo"]
+  envoy["Envoy em servico-limites"]
+  policy{"AuthorizationPolicy<br/>principal permitido?"}
+  app["FastAPI servico-limites"]
+  deny["403 Forbidden<br/>(não chega na app)"]
+
+  req --> envoy --> policy
+  policy -->|sim: SA do Pix| app
+  policy -->|não: ex. marketing| deny

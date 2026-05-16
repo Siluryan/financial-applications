@@ -1,0 +1,13 @@
+sequenceDiagram
+  participant C as Cliente (Envoy Pix)
+  participant S as Servidor (Envoy Limites)
+
+  Note over C,S: TLS one-way — só o servidor prova identidade
+  C->>S: ClientHello
+  S->>C: Certificado do servidor
+  C->>S: Dados da aplicação
+
+  Note over C,S: mTLS — ambos apresentam certificado
+  C->>S: ClientHello + certificado do cliente
+  S->>C: Certificado do servidor
+  C->>S: Dados da aplicação (canal mútuo autenticado)

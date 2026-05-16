@@ -1,0 +1,9 @@
+flowchart LR
+  traffic["Tráfego"]
+  vs["VirtualService"]
+  v1["subset v1<br/>99%"]
+  v2["subset v2<br/>1% canary"]
+
+  traffic --> vs
+  vs --> v1
+  vs --> v2

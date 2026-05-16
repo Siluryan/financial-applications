@@ -1,0 +1,8 @@
+apiVersion: backstage.io/v1alpha1
+kind: Location
+metadata:
+  name: financial-applications-lab
+  description: Monorepo de laboratório — microsserviços Python de exemplo (Pix, limites, crédito).
+spec:
+  targets:
+    - ./catalog-entities.yaml

@@ -1,0 +1,13 @@
+flowchart LR
+  subgraph apps [Aplicações]
+    Pix[servico-pix]
+    Lim[servico-limites]
+  end
+  Pix -->|OTLP gRPC/HTTP| Col[OpenTelemetry Collector]
+  Lim -->|OTLP| Col
+  Col --> Jaeger[Jaeger / Tempo]
+  Col --> Prom[Prometheus]
+  Col --> Loki[Loki]
+  Prom --> Graf[Grafana]
+  Loki --> Graf
+  Jaeger --> Graf

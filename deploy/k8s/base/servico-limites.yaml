@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: servico-limites
+  namespace: core-banking
+  labels:
+    app: servico-limites
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: servico-limites
+  template:
+    metadata:
+      labels:
+        app: servico-limites
+    spec:
+      containers:
+        - name: app
+          image: servico-limites:lab
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: servico-limites
+  namespace: core-banking
+spec:
+  selector:
+    app: servico-limites
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000

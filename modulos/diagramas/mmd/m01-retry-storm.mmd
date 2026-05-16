@@ -1,0 +1,11 @@
+flowchart TB
+  subgraph clients [Muitas instâncias servico-pix]
+    P1[Pod 1 retry]
+    P2[Pod 2 retry]
+    P3[Pod N retry]
+  end
+  P1 --> Lim[servico-limites sobrecarregado]
+  P2 --> Lim
+  P3 --> Lim
+  Lim -->|falha prolongada| clients
+  note[Retry amplification / retry storm]

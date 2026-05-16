@@ -1,0 +1,47 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: servico-pix
+  title: servico-pix (lab)
+  description: API Pix de exemplo — chama servico-limites.
+  tags: [python, fastapi, lab]
+spec:
+  type: service
+  lifecycle: experimental
+  owner: guests
+  system: banco-lab
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: servico-limites
+  title: servico-limites (lab)
+  description: API de limites diários mock.
+  tags: [python, fastapi, lab]
+spec:
+  type: service
+  lifecycle: experimental
+  owner: guests
+  system: banco-lab
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: servico-credito
+  title: servico-credito (lab)
+  description: Stub de score para canary / mirror.
+  tags: [python, fastapi, lab]
+spec:
+  type: service
+  lifecycle: experimental
+  owner: guests
+  system: banco-lab
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: banco-lab
+  title: Banco lab (kind)
+  description: Sistema mínimo para estudo de engenharia de cloud.
+spec:
+  owner: guests

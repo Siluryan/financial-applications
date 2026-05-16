@@ -1,0 +1,101 @@
+# Manifesto do ebook — teoria + laboratório integrados por parte
+# Linhas especiais: @parte Título | @secao teoria|lab|intro|contexto|apendice
+
+@parte Introdução
+@secao intro
+ebook/INTRODUCAO.md
+ebook/SIGLAS-RAPIDAS.md
+ebook/PRE-REQUISITOS.md
+ebook/CONVENCOES_EDITORIAIS.md
+ebook/capitulos/07-como-estudar-com-este-livro.md
+
+@parte Módulo 0 — Fundamentos distribuídos
+@secao contexto
+ebook/capitulos/01-por-que-microsservicos.md
+@secao teoria
+modulos/modulo-00-fundamentos-distribuidos.md
+
+@parte Onda 0 — Banco mínimo no cluster
+@secao contexto
+ebook/capitulos/02-evolucao-containers-kubernetes.md
+@secao lab
+labs/lab-00-kind-banco-minimo.md
+
+@parte Módulo 1 — Resiliência e caos na rede
+@secao contexto
+ebook/capitulos/contexto-m01-incidentes-resiliencia.md
+@secao teoria
+modulos/modulo-01-resiliencia.md
+@secao lab
+labs/lab-01-toxiproxy-resiliencia.md
+
+@parte Módulo 2 — Observabilidade e Kafka
+@secao contexto
+ebook/capitulos/04-evolucao-observabilidade.md
+ebook/capitulos/03-evolucao-kafka-mensageria.md
+@secao teoria
+modulos/modulo-02-observabilidade.md
+@secao lab
+labs/lab-02-opentelemetry-jaeger.md
+labs/lab-02b-kafka-consumer.md
+
+@parte Módulo 3 — Service mesh e mTLS
+@secao contexto
+ebook/capitulos/05-evolucao-service-mesh.md
+@secao teoria
+modulos/modulo-03-service-mesh.md
+@secao lab
+labs/lab-03-istio-mtls.md
+
+@parte Módulo 4 — Concorrência, idempotência e sagas
+@secao contexto
+ebook/capitulos/contexto-m04-postgres-redis.md
+ebook/capitulos/contexto-m04-incidentes-dados.md
+@secao teoria
+modulos/modulo-04-consistencia.md
+@secao lab
+labs/lab-04-redis-postgres-idempotencia.md
+
+@parte Módulo 5 — Deploy, canary e GitOps
+@secao contexto
+ebook/capitulos/contexto-m05-gitops-canary.md
+@secao teoria
+modulos/modulo-05-deploy-gitops.md
+@secao lab
+labs/lab-05-canary-gitops.md
+
+@parte Módulo 6 — Developer experience (Backstage)
+@secao contexto
+ebook/capitulos/contexto-m06-backstage.md
+@secao teoria
+modulos/modulo-06-backstage.md
+@secao lab
+labs/lab-06-backstage-catalogo.md
+
+@parte Módulo 7 — Operação segura e conformidade
+@secao contexto
+ebook/capitulos/contexto-m07-lgpd-pci.md
+ebook/capitulos/contexto-m07-governanca-operacao.md
+ebook/capitulos/contexto-m07-incidentes-conformidade.md
+@secao teoria
+modulos/modulo-07-operacao-conformidade.md
+@secao lab
+labs/lab-07a-segredos-external-secrets.md
+labs/lab-07b-outbox-kafka.md
+labs/lab-07c-pact-contratos.md
+labs/lab-07d-kyverno-admission.md
+labs/lab-07e-disaster-recovery.md
+labs/lab-07f-pii-observabilidade.md
+
+@parte Glossário
+@secao apendice
+ebook/GLOSSARIO.md
+
+@parte Apêndice — Referência rápida no repositório
+@secao apendice
+apps/README.md
+deploy/kind/README.md
+deploy/kafka/README.md
+deploy/toxiproxy/README.md
+deploy/istio/README.md
+modulos/diagramas/README.md

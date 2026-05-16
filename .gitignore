@@ -42,3 +42,23 @@ terraform.rc
 # Optional: ignore plan files saved before destroying Terraform configuration
 # Uncomment the line below if you want to ignore planout files.
 # planout
+
+# Python / apps de laboratório
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# Segredos locais (nunca commitar)
+.env
+.env.*
+!.env.example
+
+# Ebook gerado (fonte = Markdown no repo)
+ebook/build/
