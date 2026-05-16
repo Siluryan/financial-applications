@@ -1,0 +1,8 @@
+flowchart TB
+  subgraph linha [Linha accounts]
+    V1[version 1 saldo 100]
+    V2[version 2 saldo 10]
+  end
+  T1[Tx A lê snapshot 100] --> V1
+  T2[Tx B UPDATE version] --> V2
+  T1 -->|UPDATE version falha| Conflito[0 rows ou retry]

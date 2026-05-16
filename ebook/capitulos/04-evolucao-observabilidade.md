@@ -1,5 +1,3 @@
-*Contexto histórico — leia antes do [Módulo 2](../../modulos/modulo-02-observabilidade.md).*
-
 ## Quando “está no ar” não basta
 
 Nos anos 2000, monitoramento era **ping + CPU + disco**. Banco respondia 200 no load balancer — verde no painel. Microsserviços quebraram essa ilusão: o cliente vê erro intermitente enquanto cada caixa individual parece saudável.
@@ -48,11 +46,14 @@ Componentes que você toca no lab:
 
 **W3C Trace Context** padronizou `traceparent` em HTTP — sem isso, o buraco entre *Pix* e worker persiste.
 
-Conceitos operacionais do [Módulo 2](../../modulos/modulo-02-observabilidade.md):
+Conceitos operacionais do [Módulo 2](../../modulos/modulo-02-observabilidade.md) — nível SRE:
 
-- **sampling** — gravar fração dos traces;
-- **cardinalidade** — não rotular métrica com `user_id` único;
-- **exemplars** — ligar métrica ao trace no Grafana.
+- **RED vs USE** — sintoma de serviço vs saturação de recurso;
+- **sampling** head, tail e adaptativo — custo vs utilidade em incidente;
+- **cardinalidade explosiva** — `user_id` como label mata Prometheus;
+- **exemplars** — do p99 no Grafana ao trace no Jaeger;
+- **correlation ID vs trace ID** — suporte humano vs APM;
+- **custo de tracing** — spans × retenção × vendor.
 
 ## SLO, SLI e error budget
 
@@ -86,11 +87,3 @@ Em banco, SLO de *Pix* não é vanity metric — alimenta decisão de deploy (ca
 | 2019 | OpenTelemetry (fusão) |
 | 2020+ | OTel GA; vendors adotam OTLP |
 | 2020s | eBPF (Cilium, Pixie) como complemento |
-
-## Ligação com o livro
-
-- [Módulo 2](../../modulos/modulo-02-observabilidade.md)
-- [Lab 02](../../labs/lab-02-opentelemetry-jaeger.md)
-- [Lab 07f](../../labs/lab-07f-pii-observabilidade.md) — PII em telemetria
-
-Próximo: [Módulo 2](../../modulos/modulo-02-observabilidade.md) · [Labs 02 e 02b](../../labs/lab-02-opentelemetry-jaeger.md).

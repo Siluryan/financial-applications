@@ -1,0 +1,12 @@
+flowchart TB
+  subgraph topic [Tópico pix.iniciado]
+    P0[Partição 0 key acc_1]
+    P1[Partição 1 key acc_2]
+    P2[Partição 2 key acc_3]
+  end
+  Prod[servico-pix producer] -->|chave account_id| topic
+  P0 --> B0[(Broker A leader)]
+  P1 --> B1[(Broker B leader)]
+  P2 --> B2[(Broker C leader)]
+  B0 -.réplica.-> B1
+  B1 -.réplica.-> B2

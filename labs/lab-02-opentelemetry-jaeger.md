@@ -113,6 +113,62 @@ Configure `structlog` ou logging para incluir `trace_id` do span ativo (consulte
 - [ ] O mesmo ID aparece nos logs JSON do *Pix* e do *Limites*.
 - [ ] Você consegue explicar qual span seria “vermelho” se o consumer Kafka falhar (próximo lab).
 
+## Exercícios avançados (nível SRE)
+
+Referência: [Módulo 2 § avançado](../modulos/modulo-02-observabilidade.md) · [PLANO §2.6](../PLANO_DE_ESTUDO.md#modulo-2).
+
+### A1 — RED vs USE
+
+1. Liste 3 métricas **RED** do endpoint `POST /v1/pix`.
+2. Liste 3 métricas **USE** da infra (CPU do pod, pool de conexões httpx, fila Uvicorn).
+3. Escreva: “se só RED estiver verde e USE saturado, o que o cliente sente?”
+
+**Evidência:** parágrafo no caderno ou `docs/observabilidade-red-use.md`.
+
+### A2 — Exemplars (opcional com Prometheus)
+
+Se tiver Prometheus + Grafana: habilite exemplars no histograma de latência do *Pix* e clique de um p99 até o trace no Jaeger. Sem Prometheus, descreva o fluxo em texto (métrica → `trace_id` → Jaeger).
+
+### A3 — Cardinalidade explosiva
+
+1. Adicione temporariamente label `account_id` num contador de teste (ou documente o anti-pattern).
+2. Explique por que isso explodiria séries no Prometheus.
+3. Remova a label; mantenha `account_id` só em **log** e **span attribute**.
+
+### A4 — Sampling head vs tail
+
+1. Configure **100 %** sampling (lab) e estime: `req/min × spans/request × 30 dias` = GB aproximados.
+2. Escreva regra de **tail sampling** que você aplicaria em produção (ex.: erro, latência > 2s).
+3. Compare com head 5 % — quando perderia o incidente raro?
+
+Diagrama: [`m02-sampling-strategies.png`](../modulos/diagramas/m02-sampling-strategies.png).
+
+### A5 — Correlation ID vs trace ID
+
+1. No gateway ou *Pix*, aceite header `X-Correlation-ID` (ou gere UUID).
+2. Inclua **ambos** no log JSON: `correlation_id` e `trace_id`.
+3. Simule ticket de suporte: “ache tudo pelo correlation” vs “ache árvore pelo trace”.
+
+### A6 — Custo de tracing
+
+Preencha tabela:
+
+| Variável | Seu valor estimado |
+|----------|-------------------|
+| Requisições/min | |
+| Spans por *Pix* | |
+| Sampling % | |
+| Retenção (dias) | |
+| Custo mensal aceitável (R$) | |
+
+Conclusão: sampling alvo ___ %.
+
+### A7 — Quebra de propagação (obrigatório)
+
+Remova propagação `traceparent` na chamada httpx ou no publish Kafka; reproduza buraco no Jaeger; restaure e confirme trace contínuo.
+
+Diagrama: [`m02-trace-propagation.png`](../modulos/diagramas/m02-trace-propagation.png).
+
 ## Troubleshooting
 
 | Sintoma | Ação |
@@ -120,7 +176,8 @@ Configure `structlog` ou logging para incluir `trace_id` do span ativo (consulte
 | Jaeger vazio | OTLP na porta 4317? Firewall? Endpoint correto no exporter? |
 | só um serviço | Instrumentou httpx no *Pix*? *Limites* também exporta OTLP? |
 | trace quebrado | Propagação W3C: não sobrescreva headers `traceparent` manualmente. |
+| Métricas OK, trace vazio | Sampling head descartou; verificar flags em `traceparent`. |
 
 ## Próximo passo
 
-[Lab 02b — Kafka consumer](lab-02b-kafka-consumer.md) · [Lab 03 — Istio mTLS](lab-03-istio-mtls.md)
+[Lab 02b — Kafka consumer](lab-02b-kafka-consumer.md) · [PLANO — nível avançado](../PLANO_DE_ESTUDO.md#nivel-avancado) · [Lab 03 — Istio mTLS](lab-03-istio-mtls.md)

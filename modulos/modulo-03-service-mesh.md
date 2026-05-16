@@ -12,6 +12,8 @@
 
 Este capítulo usa o namespace `core-banking` no Kubernetes.
 
+> **Figuras:** fluxo mTLS · control/data plane · TLS vs mTLS · AuthorizationPolicy · panorama de meshes · handshake.
+
 ## Cenário no laboratório
 
 Dados de limites e decisões de *Pix* trafegam entre *servico-pix* e *servico-limites*. Você exige:
@@ -136,6 +138,45 @@ Com `action: ALLOW` e regras explícitas, o padrão é negar o restante. Outro s
 | **ServiceEntry** | Registrar API externa (fora do Kubernetes) no mesh |
 | **DestinationRule** | Definir subsets (v1/v2) e políticas de conexão |
 
+## Service mesh ≠ só Istio
+
+O lab usa **Istio + Envoy** porque é referência de mercado e documentação abundante. O mercado evoluiu para várias malhas e modos **sem sidecar**.
+
+| Solução | Data plane | Destaque | Trade-off |
+|---------|------------|----------|-----------|
+| **Istio** | Envoy sidecar | Políticas ricas, ecossistema CNCF | Complexidade, memória por pod |
+| **Linkerd** | Linkerd2-proxy (Rust) | Operação mais simples, footprint menor | Menos features que Istio em L7 avançado |
+| **Cilium Service Mesh** | **eBPF** no kernel + Envoy opcional | Observabilidade L3/L4/L7, sem sidecar em modo ambient | Requer kernel moderno, curva eBPF |
+| **Consul Connect** | Envoy sidecar | Integração multi-datacenter HashiCorp | Licenciamento e ops próprios |
+
+### Ambient mesh e sidecarless
+
+**Ambient mesh** (Istio): separa **camada L4** (ztunnel — mTLS básico) da **camada L7** (waypoint proxy só onde precisa de HTTP routing avançado). Menos sidecars = menos memória; políticas L7 concentradas em pontos de waypoint.
+
+**Sidecarless** (Cilium): políticas e mTLS via **eBPF** no nó — tráfego pod-to-pod criptografado sem container proxy ao lado de cada app. Aplicação continua HTTP; o kernel/node aplica identidade SPIFFE.
+
+### Quando NÃO usar mesh (decisão honesta)
+
+| Situação | Alternativa |
+|----------|-------------|
+| 3–5 serviços internos, time pequeno | **NetworkPolicy** + TLS na lib ou cert-manager por serviço |
+| Latência sub-ms crítica | mTLS no app ou Cilium L4 sem waypoint L7 |
+| Sem time de plataforma para operar Istiod | Linkerd ou adiar mesh |
+| Legado monólito + um API gateway | mTLS só na borda |
+| Observabilidade L7 já resolvida no app (OTel) | Mesh só se política de rede for o gap |
+
+Mesh brilha com **dezenas/centenas** de workloads, identidade uniforme leste-oeste e política centralizada. No *kind* deste curso, é **treino de competência** — não dogma.
+
+![Panorama de meshes](diagramas/m03-mesh-landscape.png)
+
+## Handshake mTLS (visão técnica)
+
+Em **mTLS**, cliente e servidor trocam certificados X.509 de curta duração (SPIFFE). O handshake TLS negocia cipher, valida cadeia e **SNI**; só então flui HTTP.
+
+![Handshake mTLS simplificado](diagramas/m03-mtls-handshake.png)
+
+No Istio, Istiod assina certificados para cada workload; Envoy renova antes de expirar. Erro comum em incidente: relógio do nó dessincronizado → handshake falha em massa.
+
 ## Limites do service mesh (trade-offs)
 
 | Aspecto | Impacto |
@@ -145,12 +186,6 @@ Com `action: ALLOW` e regras explícitas, o padrão é negar o restante. Outro s
 | **Operação** | Istiod, certificados, debugging de 403 no Envoy |
 | **Cardinalidade** | Métricas por workload podem explodir |
 | **Tuning** | Envoy buffer, connection pool, drain |
-
-## Quando NÃO usar mesh
-
-- Poucos serviços internos, time sem capacidade de operar Istio.
-- Latência sub-milissegundo crítica sem budget para proxy.
-- Ambiente onde **NetworkPolicy** + TLS no app bastam.
 
 ## Anti-patterns
 

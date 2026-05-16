@@ -1,0 +1,6 @@
+flowchart TB
+  SLI[SLI medido ex latência Pix]
+  SLI --> SLO[SLO meta 99.9%]
+  SLO --> SLA[SLA contrato cliente]
+  SLO --> EB[Error budget]
+  EB --> Deploy[Deploy ou congelar feature]

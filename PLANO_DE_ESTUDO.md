@@ -12,8 +12,8 @@ Documento de referência para estudar resiliência, observabilidade, malha de se
 - Módulo [0 — Fundamentos](../modulos/modulo-00-fundamentos-distribuidos.md) (leitura antes da Onda 0)
 - Módulos: [1](#modulo-1) · [2](#modulo-2) · [3](#modulo-3) · [4](#modulo-4) · [5](#modulo-5) · [6](#modulo-6) · [7](#modulo-7)
 - [Referências](#referencias-estudo) · [Bibliografia ampliada](REFERENCIAS.md)
-- [Roadmap de evolução](#roadmap-evolucao) · [Exercícios de falha](../labs/EXERCICIOS-FALHA-E-TROUBLESHOOTING.md)
-- **Guias expandidos (conceitos):** pasta [`modulos/`](modulos/README.md)
+- [Checklist avançado / SRE](#nivel-avancado) · [Roadmap de evolução](#roadmap-evolucao) · [Exercícios de falha](../labs/EXERCICIOS-FALHA-E-TROUBLESHOOTING.md)
+- **Guias expandidos (conceitos):** pasta [`modulos/`](modulos/README.md) — cada capítulo traz **figuras PNG** embutidas; índice em [`modulos/diagramas/README.md`](modulos/diagramas/README.md)
 - **Laboratórios passo a passo:** pasta [`labs/`](labs/README.md)
 
 ---
@@ -86,7 +86,7 @@ Use esta tabela para não perder o fio: cada **módulo** aprofunda teoria e labo
 | **4** — Concorrência, idempotência, sagas | **Onda 2** (Redis, Postgres, eventos) |
 | **5** — Deploy, canary, GitOps | **Onda 5** e **Onda 6** |
 | **6** — Backstage | **Onda 7** |
-| **7** — Operação e conformidade | Reforço transversal às **Ondas 2–6** (ver [§7.7](#modulo-7-encadeamento)); conclui o monorepo |
+| **7** — Operação e conformidade | Reforço transversal às **Ondas 2–6** (SRE [§7.7](#modulo-7-sre), encadeamento [§7.8](#modulo-7-encadeamento)); conclui o monorepo |
 
 **Como ler:** você pode estudar os **Módulos 1–6** em ordem pedagógica *e* ir aplicando no **kind** seguindo as **Ondas 0–7**; o **Módulo 7** fecha o mesmo repositório com segurança operacional e auditoria.
 
@@ -435,6 +435,41 @@ Exemplo de consulta conceitual: `service="servico-pix" AND metadata.account_id="
 - [ ] Adicionar um segundo Deployment *worker* (`aiokafka` consumer) que processa `pix.iniciado` e gera log JSON com `trace_id` (propague o contexto W3C nos headers da mensagem a partir do *Pix*).
 - [ ] Simular indisponibilidade do broker ou aumento de latência e correlacionar com pico de lag e erros no *Pix* (`kafka` campo `error:` na resposta quando publish falha).
 
+*Kafka aprofundado (nível SRE)* — detalhes em [modulo-02 § Kafka](modulos/modulo-02-observabilidade.md); prática em [Lab 02b](labs/lab-02b-kafka-consumer.md) (exercícios avançados) e [Lab 07b](labs/lab-07b-outbox-kafka.md) (DLQ/outbox).
+
+| Tópico | Lab / evidência |
+|--------|-----------------|
+| ISR, `acks=all`, `min.insync.replicas` | Exercício 02b-A1: broker fora do ISR → publish falha |
+| Rebalance storm | Exercício 02b-A2: rolling deploy + lag |
+| Consumer group internals | Exercício 02b-A3: `max.poll.interval` estourado |
+| Sticky partitioning / chave `account_id` | Exercício 02b-A4: ordem por partição |
+| Compacted topics | Leitura + exercício 02b-A5 (tópico `cleanup.policy=compact`) |
+| Poison pill + DLQ | [Lab 07b](labs/lab-07b-outbox-kafka.md) exercício DLQ |
+| EOS / transactional producer | Leitura módulo 2 + 07b (outbox como EOS real) |
+| Schema evolution | [Lab 07c](labs/lab-07c-pact-contratos.md) + Schema Registry (doc) |
+
+### 2.6 Observabilidade avançada (nível SRE)
+
+> **Guia:** [modulo-02](modulos/modulo-02-observabilidade.md) · **Labs:** [02](labs/lab-02-opentelemetry-jaeger.md), [02b](labs/lab-02b-kafka-consumer.md), [07f](labs/lab-07f-pii-observabilidade.md)
+
+| Tópico | Onde praticar | Diagrama |
+|--------|---------------|----------|
+| **RED vs USE** | Lab 02 exercício A1: métricas API + pool JDBC/CPU | — |
+| **Exemplars** | Lab 02 exercício A2 (Grafana+Prometheus opcional) | — |
+| **Cardinalidade / high-cardinality labels** | Lab 02 exercício A3; Collector attribute limits | — |
+| **Head / tail / adaptive sampling** | Lab 02 exercício A4; [07f](labs/lab-07f-pii-observabilidade.md) | `m02-sampling-strategies.png` |
+| **Correlation ID vs trace ID** | Lab 02 exercício A5 | `m02-trace-propagation.png` |
+| **Custo de tracing** | Lab 02 exercício A6: estimar spans/min × retenção | — |
+| **Propagação HTTP → Kafka** | Lab 02b + Lab 02 passo 6 | `m02-trace-propagation.png` |
+
+*Checklist avançado (marque ao concluir os exercícios A* nos labs)*
+
+- [ ] Explicar quando alertar em RED vs USE no *Pix*.
+- [ ] Demonstrar buraco de trace sem `traceparent` no Kafka e correção.
+- [ ] Listar três labels proibidos em Prometheus e por quê.
+- [ ] Documentar política de sampling para produção (head + tail rules).
+- [ ] Log JSON com `correlation_id` **e** `trace_id` no mesmo evento.
+
 ---
 
 <a id="modulo-3"></a>
@@ -509,6 +544,11 @@ spec:
 - [ ] Aplicar `AuthorizationPolicy` e provar negação com `curl` ou com **httpx** a partir de um pod com outro service account.
 - [ ] Registrar em notas os principals Istio usados por cada serviço.
 
+*Mesh além do Istio* — [modulo-03](modulos/modulo-03-service-mesh.md): Linkerd, Cilium, ambient/sidecarless, quando **não** usar mesh. Diagramas: `m03-mesh-landscape.png`, `m03-mtls-handshake.png`.
+
+- [ ] (Escrita) Comparar Istio vs Linkerd vs Cilium em uma página — latência, memória, operação.
+- [ ] (Escrita) Listar três cenários do seu contexto em que mesh **não** vale a pena.
+
 ---
 
 <a id="modulo-4"></a>
@@ -516,6 +556,15 @@ spec:
 ## Módulo 4 — Concorrência, idempotência e sagas
 
 > **Guia expandido:** [modulos/modulo-04-consistencia.md](modulos/modulo-04-consistencia.md) (locks, idempotência, sagas, outbox).
+
+*Banco distribuído (nível SRE)* — [modulo-04](modulos/modulo-04-consistencia.md): isolamento SQL, MVCC, write skew, phantom reads, 2PC vs saga, consistência causal. Diagramas: `m04-saga-orchestration.png`, `m04-outbox.png`.
+
+| Tópico | Lab |
+|--------|-----|
+| Níveis de isolamento / write skew | [Lab 04](labs/lab-04-redis-postgres-idempotencia.md) — corrida de saldo |
+| Lock otimista (`version`) vs pessimista (`FOR UPDATE`) | Lab 04 |
+| 2PC vs saga | Leitura módulo 4 + desenho de compensação (exercício escrito) |
+| Outbox + EOS | [Lab 07b](labs/lab-07b-outbox-kafka.md) |
 
 ### 4.1 Corrida de saldo (concorrência)
 
@@ -667,6 +716,12 @@ steps:
 - [ ] Publicar TechDocs a partir do repositório.
 - [ ] Criar um template simplificado (sem integrações corporativas) que gere repositório **Python** (FastAPI, `requirements.txt` ou `pyproject.toml`, Dockerfile, testes com *pytest*, health `/healthz` e instrumentação OTel).
 
+*Platform engineering (nível SRE)* — [modulo-06](modulos/modulo-06-backstage.md): golden paths, paved roads, scorecards, self-service, platform as a product, Team Topologies.
+
+- [ ] Definir um **golden path** documentado (CI + OTel + catálogo + políticas Kyverno).
+- [ ] Esboçar **scorecard** com ≥ 4 critérios (owner, SLO, Pact, sem `:latest`).
+- [ ] (Escrita) Mapear squads do lab aos papéis Stream-aligned / Platform / Enabling.
+
 ---
 
 <a id="modulo-7"></a>
@@ -806,9 +861,33 @@ O time de plataforma precisa *auditar* o desenho: ninguém pode ler segredos em 
 
 ---
 
+<a id="modulo-7-sre"></a>
+
+### 7.7 SRE em produção — incidentes, alertas e cultura
+
+> **Guia:** [modulo-07 § 7.7](modulos/modulo-07-operacao-conformidade.md) · **Lab:** [07g — SRE prático](labs/lab-07g-sre-praticas.md)
+
+| Tópico | Onde praticar |
+|--------|---------------|
+| Incident command (IC, SME, scribe) | Lab 07g exercício 1 — simulação de mesa |
+| Postmortem blameless | Lab 07g exercício 2 — template preenchido |
+| Toil vs automação | Lab 07g exercício 3 — listar toil do lab |
+| Alert fatigue / noisy alerts | Lab 07g exercício 4 — revisar alertas fictícios |
+| Burn rate multi-window | Lab 07g exercício 5; diagrama `m07-burn-rate.png` |
+| SLI mal desenhado | Lab 07g exercício 6 — reescrever SLIs do *Pix* |
+
+*Checklist*
+
+- [ ] Simular incidente “lag Kafka alto, API 200” com papéis IC/SME/scribe.
+- [ ] Escrever postmortem blameless de 1 página (timeline + ações).
+- [ ] Definir 2 SLIs do *Pix* e 1 alerta por **burn rate** (não por “1 erro”).
+- [ ] Identificar 3 alertas que seriam **noisy** e como corrigir.
+
+---
+
 <a id="modulo-7-encadeamento"></a>
 
-### 7.7 Encadeamento com a espinha dorsal kind
+### 7.8 Encadeamento com a espinha dorsal kind
 
 | Tópico | Onde encaixa no monorepo |
 |--------|-------------------------|
@@ -819,11 +898,13 @@ O time de plataforma precisa *auditar* o desenho: ninguém pode ler segredos em 
 | 7.5 | `docs/dr-runbook.md`, `scripts/backup-restore.sh` |
 | 7.6 | `apps/servico-*/` (logging) e `deploy/observability/collector-config.yaml` |
 
-*Ordem sugerida dentro do Módulo 7:* aplicar *7.4* cedo (evita débito de manifests inseguros); *7.1* em paralelo à higienização de segredos; *7.2* e *7.3* no meio; *7.5* e *7.6* fechando documentação e hardening.
+*Ordem sugerida dentro do Módulo 7:* aplicar *7.4* cedo (evita débito de manifests inseguros); *7.1* em paralelo à higienização de segredos; *7.2* e *7.3* no meio; *7.5*, *7.6* e *7.7* (SRE) fechando documentação, hardening e operação.
 
 ---
 
-### 7.8 Laboratório integrador — critérios de conclusão do módulo
+<a id="modulo-7-integrador"></a>
+
+### 7.9 Laboratório integrador — critérios de conclusão do módulo
 
 Implemente o *mesmo* monorepo e a *mesma* sequência de ondas da seção *Espinha dorsal prática — do zero ao cenário integrado (kind)*. O Módulo 7 considera-se *concluído* quando a espinha dorsal estiver pronta *e* todos os itens abaixo forem verdadeiros.
 
@@ -841,10 +922,90 @@ Implemente o *mesmo* monorepo e a *mesma* sequência de ondas da seção *Espinh
 - [ ] Pelo menos *duas* políticas Kyverno/Gatekeeper ativas (ex.: `limits` obrigatórios + proibição de `image: ...:latest` em `core-banking`).
 - [ ] *Runbook de DR* com RPO/RTO preenchidos e um restore de Postgres *ensaiado* ao menos uma vez.
 - [ ] Política de *dados em logs/traces* aplicada e revisada em trace real.
+- [ ] [Lab 07g](labs/lab-07g-sre-praticas.md) concluído (postmortem + burn rate).
 
 *Entrega final*
 
-- [ ] Documento ou gravação de **10–15 minutos** percorrendo: caos (*Toxiproxy*) → trace **sem** PII → política negando manifest ruim → contrato no CI verde.
+- [ ] Documento ou gravação de **10–15 minutos** percorrendo: caos (*Toxiproxy*) → trace **sem** PII → política negando manifest ruim → contrato no CI verde → (opcional) trecho de postmortem blameless.
+
+---
+
+<a id="nivel-avancado"></a>
+
+## Checklist de leitura avançada (nível SRE)
+
+Use esta seção depois dos **Módulos 1–6** e em paralelo ao **Módulo 7**. Cada linha aponta teoria, prática e visualização.
+
+### Observabilidade
+
+| Tópico | Módulo | Lab | Diagrama |
+|--------|--------|-----|----------|
+| Exemplars | [2](modulos/modulo-02-observabilidade.md) | [02](labs/lab-02-opentelemetry-jaeger.md) A2 | — |
+| Cardinalidade explosiva | [2](modulos/modulo-02-observabilidade.md) | [02](labs/lab-02-opentelemetry-jaeger.md) A3 | — |
+| RED vs USE | [2](modulos/modulo-02-observabilidade.md) | [02](labs/lab-02-opentelemetry-jaeger.md) A1 | `m02-tres-pilares.png` |
+| Sampling adaptativo / tail | [2](modulos/modulo-02-observabilidade.md) | [02](labs/lab-02-opentelemetry-jaeger.md) A4, [07f](labs/lab-07f-pii-observabilidade.md) | `m02-sampling-strategies.png` |
+| Correlation ID vs trace ID | [2](modulos/modulo-02-observabilidade.md) | [02](labs/lab-02-opentelemetry-jaeger.md) A5 | `m02-trace-propagation.png` |
+| Custo de tracing | [2](modulos/modulo-02-observabilidade.md) | [02](labs/lab-02-opentelemetry-jaeger.md) A6 | `m02-otel-pipeline.png` |
+| Trace propagation Kafka | [2](modulos/modulo-02-observabilidade.md) | [02b](labs/lab-02b-kafka-consumer.md) | `m02-trace-propagation.png` |
+
+### Kafka
+
+| Tópico | Módulo | Lab | Diagrama |
+|--------|--------|-----|----------|
+| ISR / acks | [2](modulos/modulo-02-observabilidade.md) | [02b](labs/lab-02b-kafka-consumer.md) A1 | `m02-kafka-isr.png` |
+| Rebalance storm | [2](modulos/modulo-02-observabilidade.md) | [02b](labs/lab-02b-kafka-consumer.md) A2 | `m02-kafka-consumer-group.png` |
+| Consumer group internals | [2](modulos/modulo-02-observabilidade.md) | [02b](labs/lab-02b-kafka-consumer.md) A3 | — |
+| Sticky partitioning | [2](modulos/modulo-02-observabilidade.md) | [02b](labs/lab-02b-kafka-consumer.md) A4 | `m02-kafka-partitions.png` |
+| Compacted topics | [2](modulos/modulo-02-observabilidade.md) | [02b](labs/lab-02b-kafka-consumer.md) A5 | — |
+| Poison pill / DLQ | [2](modulos/modulo-02-observabilidade.md), [7](modulos/modulo-07-operacao-conformidade.md) | [07b](labs/lab-07b-outbox-kafka.md) | — |
+| EOS / transactional producer | [2](modulos/modulo-02-observabilidade.md), [4](modulos/modulo-04-consistencia.md) | [07b](labs/lab-07b-outbox-kafka.md) | `m04-outbox.png` |
+| Schema evolution | [2](modulos/modulo-02-observabilidade.md) | [07c](labs/lab-07c-pact-contratos.md) | — |
+
+### Banco distribuído e consistência
+
+| Tópico | Módulo | Lab | Diagrama |
+|--------|--------|-----|----------|
+| Isolation levels / MVCC / write skew | [4](modulos/modulo-04-consistencia.md) | [04](labs/lab-04-redis-postgres-idempotencia.md) | — |
+| Optimistic / pessimistic locking | [4](modulos/modulo-04-consistencia.md) | [04](labs/lab-04-redis-postgres-idempotencia.md) | — |
+| 2PC vs saga | [4](modulos/modulo-04-consistencia.md) | escrito + [04](labs/lab-04-redis-postgres-idempotencia.md) | `m04-saga-orchestration.png` |
+| Transactional outbox | [4](modulos/modulo-04-consistencia.md) | [07b](labs/lab-07b-outbox-kafka.md) | `m04-outbox.png` |
+| Causal consistency | [4](modulos/modulo-04-consistencia.md) | [02b](labs/lab-02b-kafka-consumer.md) A4 | — |
+
+### Service mesh
+
+| Tópico | Módulo | Lab | Diagrama |
+|--------|--------|-----|----------|
+| Istio / Linkerd / Cilium / ambient | [3](modulos/modulo-03-service-mesh.md) | [03](labs/lab-03-istio-mtls.md) | `m03-mesh-landscape.png` |
+| mTLS handshake | [3](modulos/modulo-03-service-mesh.md) | [03](labs/lab-03-istio-mtls.md) | `m03-mtls-handshake.png` |
+| Quando NÃO usar mesh | [3](modulos/modulo-03-service-mesh.md) | escrito | — |
+
+### Platform engineering
+
+| Tópico | Módulo | Lab | Diagrama |
+|--------|--------|-----|----------|
+| Golden path / paved road | [6](modulos/modulo-06-backstage.md) | [06](labs/lab-06-backstage-catalogo.md) | — |
+| Scorecards / templates | [6](modulos/modulo-06-backstage.md) | [06](labs/lab-06-backstage-catalogo.md) | — |
+| Team Topologies | [6](modulos/modulo-06-backstage.md) | escrito | — |
+
+### Resiliência e deploy (visualização)
+
+| Tópico | Módulo | Lab | Diagrama |
+|--------|--------|-----|----------|
+| Retry storm | [1](modulos/modulo-01-resiliencia.md) | [01](labs/lab-01-toxiproxy-resiliencia.md) | `m01-retry-storm.png` |
+| Circuit breaker states | [1](modulos/modulo-01-resiliencia.md) | [01](labs/lab-01-toxiproxy-resiliencia.md) | `m01-circuit-breaker.png` |
+| Timeout chain | [1](modulos/modulo-01-resiliencia.md) | [01](labs/lab-01-toxiproxy-resiliencia.md) | `m01-timeout-chain.png` |
+| GitOps reconciliation | [5](modulos/modulo-05-deploy-gitops.md) | [05](labs/lab-05-canary-gitops.md) | `m05-gitops.png` |
+| Canary rollout | [5](modulos/modulo-05-deploy-gitops.md) | [05](labs/lab-05-canary-gitops.md) | `m05-canary.png` |
+
+### SRE e operação
+
+| Tópico | Módulo | Lab | Diagrama |
+|--------|--------|-----|----------|
+| Incident command / postmortem | [7](modulos/modulo-07-operacao-conformidade.md) | [07g](labs/lab-07g-sre-praticas.md) | `m07-incident-response.png` |
+| Burn rate / alert fatigue | [7](modulos/modulo-07-operacao-conformidade.md) | [07g](labs/lab-07g-sre-praticas.md) | `m07-burn-rate.png` |
+| SLI design | [2](modulos/modulo-02-observabilidade.md), [7](modulos/modulo-07-operacao-conformidade.md) | [07g](labs/lab-07g-sre-praticas.md) | — |
+
+**Critério de conclusão do nível avançado:** ≥ 80 % das linhas acima com evidência (print, log, postmortem ou nota) + [integrador §7.9](#modulo-7-integrador).
 
 ---
 
@@ -857,7 +1018,7 @@ Implemente o *mesmo* monorepo e a *mesma* sequência de ondas da seção *Espinh
 | **1 — Correções** | Terminologia, BASE/Soft State, limites de mTLS/tracing | Módulos 0–7, [`ebook/CONVENCOES_EDITORIAIS.md`](ebook/CONVENCOES_EDITORIAIS.md) |
 | **2 — Conteúdo expandido** | Trade-offs, anti-patterns, exercícios, troubleshooting | Seções nos módulos + [`labs/EXERCICIOS-FALHA-E-TROUBLESHOOTING.md`](labs/EXERCICIOS-FALHA-E-TROUBLESHOOTING.md) |
 | **3 — Profissional** | OTel Collector, Prometheus/Loki, DLQ, Schema Registry | Documentado nos módulos 2/4/7; manifests parciais em `deploy/` |
-| **4 — Avançado** | SRE, chaos formal, FinOps, eBPF | Leitura em [`REFERENCIAS.md`](REFERENCIAS.md); extensão futura |
+| **4 — Avançado / SRE** | Observabilidade profunda, Kafka ops, mesh landscape, SRE | [Checklist avançado](#nivel-avancado), módulos 2–7, labs 02/02b/07g, diagramas em [`modulos/diagramas/`](modulos/diagramas/README.md) |
 
 Cada guia em [`modulos/`](modulos/README.md) inclui cenário, teoria, trade-offs, anti-patterns, lab, troubleshooting e leitura complementar.
 
@@ -891,4 +1052,4 @@ Bibliografia expandida (ABNT/IEEE, livros de arquitetura e SRE): [`REFERENCIAS.m
 
 ---
 
-*Atualização do plano: Módulo 0, trade-offs, anti-patterns, roadmap de evolução, bibliografia e ebook integrado (ver `ebook/`).*
+*Atualização do plano: Módulo 0, nível avançado/SRE ([§ checklist](#nivel-avancado)), labs 02/02b/07g, diagramas novos, trade-offs e ebook integrado (ver `ebook/`).*

@@ -1,0 +1,8 @@
+flowchart LR
+  Dev[Desenvolvedor] --> BS[Backstage Template]
+  BS --> Repo[Repo Python OTel]
+  BS --> CI[CI testes Pact]
+  BS --> K8s[Manifests Kyverno]
+  BS --> Cat[catalog-info.yaml]
+  Repo --> Paved[Estrada pavimentada]
+  Desvio[Desvio consciente ADR] -.opcional.-> Repo

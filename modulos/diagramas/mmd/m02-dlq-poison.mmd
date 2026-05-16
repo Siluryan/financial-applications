@@ -1,0 +1,5 @@
+flowchart LR
+  T[pix.iniciado] --> C[Consumer]
+  C -->|falha x3| DLQ[pix.iniciado.dlq]
+  C -->|commit offset| T
+  DLQ --> Alert[Alerta SRE]

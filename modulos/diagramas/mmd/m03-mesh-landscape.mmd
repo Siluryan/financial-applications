@@ -1,0 +1,12 @@
+flowchart TB
+  subgraph sidecar [Com sidecar]
+    Istio[Istio + Envoy]
+    Linkerd[Linkerd proxy]
+  end
+  subgraph sidecarless [Sidecarless / ambient]
+    Cilium[Cilium eBPF]
+    Ambient[Istio ambient ztunnel]
+  end
+  App[servico-pix] --> sidecar
+  App --> sidecarless
+  Note[Escolha por escala time e L7]

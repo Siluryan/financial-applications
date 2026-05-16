@@ -16,6 +16,8 @@ Regulatório e auditoria pedem rastreabilidade: qual sistema processa dados de p
 
 ## Entidades do Software Catalog
 
+![Grafo do catálogo no lab](diagramas/m06-catalog-grafo.png)
+
 | Entidade | Significado no lab |
 |----------|-------------------|
 | **System** | `banco-lab` — conjunto coerente do estudo |
@@ -55,14 +57,68 @@ O objetivo é reduzir **snowflake**: menos “cada time inventa um jeito de faze
 
 Registrar o sistema de laboratório no catálogo fecha a narrativa da plataforma: não basta subir pods no *kind*; é preciso **nomear**, **relacionar** e **documentar** o que foi construído. Opcionalmente, TechDocs aponta para este livro e para os laboratórios.
 
-## Platform engineering
+## Platform engineering: além do catálogo
 
-| Conceito | Significado |
-|----------|-------------|
-| **Internal Developer Platform (IDP)** | O “shopping” interno: ferramentas e padrões prontos para o time de produto não montar infra do zero |
-| **Golden Path / paved road** | Estrada asfaltada — novo serviço já nasce com CI, OTel e catálogo; desvios são possíveis, mas conscientes |
-| **Platform as a Product** | Quem cuida da plataforma trata desenvolvedores como clientes: backlog, prazo de correção, pesquisa de satisfação |
-| **Scorecards** | Boletim de maturidade por serviço (tem teste? SLO? scan de imagem?) — visível no catálogo, não só em planilha |
+![Golden path — template até deploy](diagramas/m06-golden-path.png)
+
+**Platform engineering** é construir e operar uma **Internal Developer Platform (IDP)** — o “shopping” interno onde times de produto provisionam serviços, pipelines e observabilidade sem reinventar Kubernetes a cada sprint.
+
+### Golden paths e paved roads
+
+| Conceito | Significado | No lab |
+|----------|-------------|--------|
+| **Golden path** | Caminho recomendado e suportado pela plataforma | Template Python + OTel + `catalog-info.yaml` + manifests Kyverno-ready |
+| **Paved road** | Mesma ideia, ênfase em “estrada já asfaltada” | `docker-compose` → *kind* → Istio → labs 07 |
+| **Desvio consciente** | Snowflake permitido com ADR e dono | Serviço Go fora do template — documentado no catálogo |
+
+Golden path não proíbe exceção; **reduz** serviços órfãos sem CI, sem SLO e sem dono.
+
+### Self-service e software templates
+
+**Self-service**: desenvolvedor clica “criar serviço *Pix*-like” no Backstage → repositório, pipeline, namespace, secrets pattern, dashboard Grafana base — sem ticket de duas semanas para infra.
+
+**Software Templates** (Backstage Scaffolder) encadeiam ações:
+
+1. `fetch:template` — copia esqueleto
+2. `publish:github` — cria repo
+3. `catalog:register` — entra no grafo
+4. (opcional) `create:kubernetes-namespace`
+
+O template é código versionado — evolui como produto.
+
+### Platform as a Product
+
+Trate a plataforma como produto com **clientes internos** (desenvolvedores):
+
+- backlog priorizado por dor real (deploy lento, falta de sandbox);
+- **SLA** da plataforma (“novo cluster em 1 dia”);
+- pesquisas de satisfação (SPACE, DORA como métricas de entrega);
+- documentação que funciona (TechDocs, não PDF morto).
+
+### Scorecards e governança leve
+
+**Scorecards** no Backstage (plugins como `backstage-plugin-tech-insights`) avaliam maturidade por componente:
+
+| Critério | Por que importa em banco |
+|----------|--------------------------|
+| Owner definido | Escalonamento em incidente |
+| SLO documentado | Error budget (Módulo 2) |
+| CI com testes + Pact | Contrato quebrado antes de produção |
+| Imagem sem `:latest` | Reprodutibilidade |
+| PII scrub em traces | LGPD (Módulo 7) |
+
+Scorecard **não** é auditoria punitiva — é visibilidade para priorizar débito técnico.
+
+### Team Topologies (ligação organizacional)
+
+| Tipo de time | Papel |
+|--------------|-------|
+| **Stream-aligned** | Entrega *Pix*, contas — consome a plataforma |
+| **Platform** | IDP, clusters, golden paths — habilita streams |
+| **Enabling** | Coaches temporários (observabilidade, Kafka) |
+| **Complicated-subsystem** | Especialistas (antifraude, core legado) |
+
+Backstage reflete essa estrutura: `owner: squad-pix` no `catalog-info.yaml` alinha catálogo à escalação.
 
 ## Trade-offs
 

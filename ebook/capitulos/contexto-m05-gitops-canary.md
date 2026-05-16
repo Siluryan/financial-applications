@@ -1,5 +1,3 @@
-*Contexto histórico — leia antes do [Módulo 5](../../modulos/modulo-05-deploy-gitops.md).*
-
 ## Deploy que não pode derrubar o *Pix*
 
 Bancos migraram de “janela de madrugada” para **deploy contínuo** — mas pagamento exige **exposição gradual**. Daí **canary**, **blue-green** e **feature flags**.
@@ -34,5 +32,3 @@ Objetos que o Módulo 5 aprofunda: **HPA**, **PDB**, probes, **requests/limits**
 | 2017 | GitOps; Istio traffic split |
 | 2018 | Argo CD |
 | 2020s | Progressive delivery + SLO |
-
-Próximo: [Módulo 5](../../modulos/modulo-05-deploy-gitops.md) · [Lab 05](../../labs/lab-05-canary-gitops.md).

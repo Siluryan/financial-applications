@@ -1,5 +1,3 @@
-*Contexto histórico — complementa o [Módulo 4](../../modulos/modulo-04-consistencia.md) (dados e consistência).*
-
 ## Quando o dinheiro “duplicou” ou “sumiu”
 
 Incidentes financeiros raramente são “bug de sintaxe”. São **modelo errado** de concorrência, fila ou idempotência.
@@ -34,5 +32,3 @@ Reserva de hotel + pagamento + milhas: um passo falha, os outros **compensam** (
 | Replay HTTP com mesma chave | `curl` + `Idempotency-Key` |
 | Mensagem Kafka duplicada | Consumer com dedup |
 | Corrida em saldo | `version` ou `FOR UPDATE` |
-
-Próximo: [Módulo 4](../../modulos/modulo-04-consistencia.md) · [Lab 04](../../labs/lab-04-redis-postgres-idempotencia.md).

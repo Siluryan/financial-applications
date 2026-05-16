@@ -69,12 +69,30 @@ Processo separado (`apps/worker-outbox-relay/`):
 
 Com [Lab 02 — Jaeger](lab-02-opentelemetry-jaeger.md), o trace deve incluir span `outbox.publish` no worker.
 
+### 6. DLQ — poison pill (avançado)
+
+1. Crie tópico `pix.iniciado.dlq`.
+2. No consumer, após **3** falhas de processamento da mesma mensagem (contador em memória ou Redis), publique cópia na DLQ com headers: `original_offset`, `error`, `trace_id`.
+3. **Commit** offset da mensagem original para não travar a partição (documente o trade-off: perda vs bloqueio).
+4. Alerta manual: log `level=ERROR event=poison_message_sent_to_dlq`.
+
+Relacionado: exercício A6 do [Lab 02b](lab-02b-kafka-consumer.md).
+
+### 7. Exactly-once — o que o lab realmente garante
+
+Escreva em 5 linhas:
+
+- O que **transação Postgres + outbox** garante.
+- O que **Kafka transactional producer** garantiria (sem implementar, se preferir).
+- Por que o consumer ainda precisa **idempotência**.
+
 ## Deu certo quando
 
 - [ ] Nenhum evento perdido após crash simulado do relay.
 - [ ] Consumer idempotente não aplica efeito duplicado.
 - [ ] Fluxo documentado no diagrama [m04-outbox](../modulos/diagramas/m04-outbox.png).
+- [ ] (Avançado) Mensagem poison enviada à DLQ após N tentativas.
 
 ## Próximo passo
 
-[Lab 07c — Pact](lab-07c-pact-contratos.md)
+[Lab 07c — Pact](lab-07c-pact-contratos.md) · [Lab 07g — SRE](lab-07g-sre-praticas.md)

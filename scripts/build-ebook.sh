@@ -7,7 +7,11 @@ OUT_DIR="$ROOT/ebook/build"
 MANIFEST="$ROOT/ebook/manifesto.txt"
 MASTER="$OUT_DIR/microsservicos-financeiros-lab.md"
 TITLE="Microsserviços financeiros — teoria e laboratório"
-AUTHOR="financial-applications"
+SUBTITLE="Pix, Kubernetes, observabilidade e operação em bancos digitais"
+AUTHOR="Guilherme Dias"
+PUBLISHER="Personal DevOps Trainer / financial-applications (open source)"
+COVER="$ROOT/ebook/assets/cover.png"
+DESCRIPTION="Percurso prático de microsserviços em contexto financeiro: resiliência, Kafka, OpenTelemetry, service mesh, consistência, GitOps, Backstage e operação SRE. Teoria e laboratórios com cluster kind."
 
 mkdir -p "$OUT_DIR"
 
@@ -22,10 +26,10 @@ fix_images() {
     -e "s|!\[([^\]]*)\]\(([^./][^)]*)\)|![\1](${base_dir}/\2)|g"
 }
 
-# Leitura no ereader: sem links clicáveis; listas de tarefa viram bullets normais.
+# Leitura no ereader: sem links clicáveis (exceto imagens); listas de tarefa viram bullets.
 flatten_for_ebook() {
   perl -pe '
-    s/\[([^\]]+)\]\([^)]+\)/$1/g;
+    s/(?<!!)\[([^\]]+)\]\([^)]+\)/$1/g;
     s/<(https?:\/\/[^>]+)>/$1/g;
     s/^(\s*)- \[[ xX]\]\s*/$1- /g;
   '
@@ -46,7 +50,7 @@ secao_label() {
     lab) echo "Laboratório prático" ;;
     contexto) echo "Contexto histórico" ;;
     intro) echo "" ;;
-    apendice) echo "Referência" ;;
+    apendice) echo "" ;;
     *) echo "$1" ;;
   esac
 }
@@ -54,18 +58,25 @@ secao_label() {
 cat >"$MASTER" <<EOF
 ---
 title: "$TITLE"
+subtitle: "$SUBTITLE"
 author: "$AUTHOR"
 lang: pt-BR
 date: "$(date +%Y-%m-%d)"
----
-
-# $TITLE
-
-Cada parte traz **teoria** (capítulo do módulo) e **laboratório prático** em seguida. Este volume é autocontido para leitura no ereader; o plano de estudo expandido com checklists permanece no repositório Git do projeto, se precisar do roteiro completo fora do livro.
-
+publisher: "$PUBLISHER"
+description: "$DESCRIPTION"
+rights: "© $(date +%Y) — Material educacional open source. Uso livre conforme licença do repositório."
+identifier:
+  - scheme: URL
+    text: "https://github.com/financial-applications"
+cover-image: assets/cover.png
 ---
 
 EOF
+
+if [[ -f "$ROOT/ebook/colofon.md" ]]; then
+  prepare_content "ebook" <"$ROOT/ebook/colofon.md" >>"$MASTER"
+  echo "" >>"$MASTER"
+fi
 
 current_part=""
 current_secao=""
@@ -82,8 +93,10 @@ append_file() {
   if [[ -n "$current_secao" && "$current_secao" != "intro" ]]; then
     local label
     label="$(secao_label "$current_secao")"
-    echo "### ${label}" >>"$MASTER"
-    echo "" >>"$MASTER"
+    if [[ -n "$label" ]]; then
+      echo "### ${label}" >>"$MASTER"
+      echo "" >>"$MASTER"
+    fi
   fi
 
   if [[ -n "$base_dir" ]]; then
@@ -103,8 +116,6 @@ while IFS= read -r line || [[ -n "${line:-}" ]]; do
     current_part="${line#@parte }"
     current_secao=""
     echo "" >>"$MASTER"
-    echo "---" >>"$MASTER"
-    echo "" >>"$MASTER"
     echo "# ${current_part}" >>"$MASTER"
     echo "" >>"$MASTER"
     continue
@@ -121,7 +132,7 @@ done <"$MANIFEST"
 echo "→ Markdown unificado: $MASTER"
 echo "   $(wc -l <"$MASTER") linhas, $(du -h "$MASTER" | cut -f1)"
 
-RESOURCE_PATH="$ROOT:$ROOT/ebook:$ROOT/ebook/capitulos:$ROOT/modulos:$ROOT/modulos/diagramas:$ROOT/labs:$ROOT/apps:$ROOT/deploy"
+RESOURCE_PATH="$ROOT:$ROOT/ebook:$ROOT/ebook/assets:$ROOT/ebook/capitulos:$ROOT/modulos:$ROOT/modulos/diagramas:$ROOT/labs:$ROOT/apps:$ROOT/deploy"
 
 if ! command -v pandoc &>/dev/null; then
   echo ""
@@ -132,16 +143,29 @@ fi
 
 EPUB="$OUT_DIR/microsservicos-financeiros-lab.epub"
 PDF="$OUT_DIR/microsservicos-financeiros-lab.pdf"
-
 EPUB_CSS="$ROOT/ebook/epub.css"
+
 pandoc_args=(
-  --from markdown
-  --toc --toc-depth=3
+  --from markdown+raw_html
+  --toc
+  --toc-depth=2
   --resource-path="$RESOURCE_PATH"
   --metadata title="$TITLE"
+  --metadata subtitle="$SUBTITLE"
   --metadata author="$AUTHOR"
+  --metadata lang="pt-BR"
+  --metadata publisher="$PUBLISHER"
+  --metadata description="$DESCRIPTION"
 )
+
 [[ -f "$EPUB_CSS" ]] && pandoc_args+=(--css="$EPUB_CSS")
+
+if [[ -f "$COVER" ]]; then
+  pandoc_args+=(--epub-cover-image="$COVER")
+  echo "→ Capa: $COVER"
+else
+  echo "Aviso: capa não encontrada em ebook/assets/cover.png" >&2
+fi
 
 pandoc "$MASTER" -o "$EPUB" "${pandoc_args[@]}"
 
@@ -150,8 +174,8 @@ echo "→ EPUB: $EPUB"
 generate_pdf() {
   local engine="$1"
   pandoc "$MASTER" -o "$PDF" \
-    --from markdown \
-    --toc --toc-depth=3 \
+    --from markdown+raw_html \
+    --toc --toc-depth=2 \
     --pdf-engine="$engine" \
     -V geometry:margin=2.5cm \
     -V documentclass=report \

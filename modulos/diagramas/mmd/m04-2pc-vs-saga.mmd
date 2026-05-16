@@ -1,0 +1,9 @@
+flowchart TB
+  subgraph twopc [2PC coordenador]
+    CP[Prepare todos]
+    CP --> CC[Commit ou Abort global]
+  end
+  subgraph saga [Saga]
+    S1[Debito OK] --> S2[Pontos FALHA]
+    S2 --> S3[Compensar estorno]
+  end

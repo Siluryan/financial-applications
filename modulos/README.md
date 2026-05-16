@@ -21,6 +21,8 @@ Material complementar ao [`PLANO_DE_ESTUDO.md`](../PLANO_DE_ESTUDO.md). Cada fic
 
 Exercícios transversais: [`labs/EXERCICIOS-FALHA-E-TROUBLESHOOTING.md`](../labs/EXERCICIOS-FALHA-E-TROUBLESHOOTING.md).
 
+**Nível avançado / SRE:** checklist mestre no [PLANO § nível avançado](../PLANO_DE_ESTUDO.md#nivel-avancado); exercícios A* nos labs [02](../labs/lab-02-opentelemetry-jaeger.md), [02b](../labs/lab-02b-kafka-consumer.md) e [07g](../labs/lab-07g-sre-praticas.md).
+
 **Diagramas:** os guias mostram **imagens PNG**; o código Mermaid fica em [`diagramas/mmd/`](diagramas/mmd/) (regenerar com [`scripts/render-diagramas.sh`](../scripts/render-diagramas.sh)).
 
 **Laboratórios (passo a passo):** pasta [`labs/`](../labs/README.md) — comandos, critérios “deu certo” e ligação a cada onda.

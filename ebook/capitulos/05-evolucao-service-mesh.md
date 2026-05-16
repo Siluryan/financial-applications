@@ -1,5 +1,3 @@
-*Contexto histórico — leia antes do [Módulo 3](../../modulos/modulo-03-service-mesh.md).*
-
 ## Segurança de rede antes do mesh
 
 Tradicionalmente, bancos usavam **firewall**, VLAN, **mTLS pontual** entre alguns pares, certificados renovados na mão. Funcionava com dezenas de servidores; com **centenas de pods** que nascem e morrem por dia, o modelo quebra.
@@ -58,9 +56,16 @@ Histórico: versões antigas do Istio tinham **Mixer** (telemetria e policy exte
 
 - overhead de sidecar (~50–100 MiB por pod, ordem de grandeza);
 - debug difícil (“quem fechou a conexão?”);
-- alternativas: **mTLS no app**, **Cilium** (eBPF), service mesh **sem sidecar** (ambiente evolui).
+- alternativas: **mTLS no app**, **Linkerd** (mais leve), **Cilium Service Mesh** (eBPF), **Istio ambient** (sidecarless parcial).
 
-Regra prática deste curso: mesh faz sentido com **muitos serviços** e time de plataforma; para três serviços no *kind*, é **laboratório de competência**, não obrigação universal.
+| Abordagem | Ideia |
+|-----------|--------|
+| **Istio + Envoy sidecar** | Referência de mercado; políticas L7 ricas |
+| **Linkerd** | Proxy menor; operação simplificada |
+| **Cilium** | mTLS e política via eBPF no kernel |
+| **Ambient mesh** | ztunnel L4 + waypoint L7 só onde precisa |
+
+Regra prática deste curso: mesh faz sentido com **muitos serviços** e time de plataforma; para três serviços no *kind*, é **laboratório de competência**, não obrigação universal. Ver [Módulo 3](../../modulos/modulo-03-service-mesh.md) — seção “Service mesh ≠ só Istio”.
 
 ## Linha do tempo
 
@@ -71,11 +76,3 @@ Regra prática deste curso: mesh faz sentido com **muitos serviços** e time de 
 | 2018–2019 | Adoção enterprise; críticas de complexidade |
 | 2020+ | Istio simplifica; ambient mesh, eBPF |
 | 2020s | CNCF Incubation/Graduation; competição (Linkerd, Cilium Service Mesh) |
-
-## Ligação com o livro
-
-- [Módulo 3](../../modulos/modulo-03-service-mesh.md)
-- [Lab 03](../../labs/lab-03-istio-mtls.md)
-- [Módulo 5](../../modulos/modulo-05-deploy-gitops.md) — canary no Istio
-
-Próximo: [Módulo 3](../../modulos/modulo-03-service-mesh.md) · [Lab 03](../../labs/lab-03-istio-mtls.md).

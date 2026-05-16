@@ -1,5 +1,3 @@
-*Contexto histórico — leia antes do [Módulo 7](../../modulos/modulo-07-operacao-conformidade.md).*
-
 ## LGPD no Brasil (Lei 13.709/2018)
 
 Vigência plena a partir de 2020. Trata dado pessoal como direito do titular, não como subproduto de log.
@@ -39,5 +37,3 @@ Lab **07f**: lista de campos proibidos, máscara em *structlog*, Collector remov
 | 2018 | LGPD sancionada (BR) |
 | 2020 | LGPD em vigor; multas e precedentes |
 | 2020s | GDPR na Europa influencia fornecedores globais |
-
-Próximo: [governança operacional](contexto-m07-governanca-operacao.md) · [incidentes de conformidade](contexto-m07-incidentes-conformidade.md).

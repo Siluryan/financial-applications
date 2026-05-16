@@ -17,7 +17,19 @@ Guias **práticos** alinhados aos [módulos](../modulos/): em cada parte do [ebo
 | [07c — Pact](lab-07c-pact-contratos.md) | Pact, CI | transversal | [7](../modulos/modulo-07-operacao-conformidade.md) | a criar em `apps/` |
 | [07d — Kyverno](lab-07d-kyverno-admission.md) | Kyverno | transversal | [7](../modulos/modulo-07-operacao-conformidade.md) | `deploy/policies/` |
 | [07e — DR](lab-07e-disaster-recovery.md) | RPO/RTO, restore Postgres | transversal | [7](../modulos/modulo-07-operacao-conformidade.md) | documental |
-| [07f — PII em logs/traces](lab-07f-pii-observabilidade.md) | structlog, OTel Collector | transversal | [7](../modulos/modulo-07-operacao-conformidade.md) | a configurar |
+| [07f — PII em logs/traces](lab-07f-pii-observabilidade.md) | structlog, OTel Collector, tail sampling | transversal | [7](../modulos/modulo-07-operacao-conformidade.md) | a configurar |
+| [07g — SRE prático](lab-07g-sre-praticas.md) | incident command, postmortem, burn rate | transversal | [7](../modulos/modulo-07-operacao-conformidade.md) | documental |
+
+## Exercícios avançados (nível SRE)
+
+| Lab | Exercícios |
+|-----|------------|
+| [02 — OTel/Jaeger](lab-02-opentelemetry-jaeger.md) | A1–A7: RED/USE, exemplars, cardinalidade, sampling, correlation vs trace, custo |
+| [02b — Kafka](lab-02b-kafka-consumer.md) | A1–A6: ISR, rebalance, consumer internals, partições, compacted, poison pill |
+| [07b — Outbox](lab-07b-outbox-kafka.md) | DLQ, EOS na prática |
+| [07g — SRE](lab-07g-sre-praticas.md) | IC, postmortem, toil, alert fatigue, burn rate, SLI |
+
+Checklist mestre: [PLANO § nível avançado](../PLANO_DE_ESTUDO.md#nivel-avancado).
 
 ## Exercícios de falha e troubleshooting
 

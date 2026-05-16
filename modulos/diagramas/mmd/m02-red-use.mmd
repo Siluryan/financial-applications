@@ -1,0 +1,13 @@
+flowchart TB
+  subgraph red [RED serviço Pix]
+    R1[Rate requests/s]
+    R2[Errors 5xx]
+    R3[Duration p99]
+  end
+  subgraph use [USE infra]
+    U1[Utilization CPU]
+    U2[Saturation pool]
+    U3[Errors I/O]
+  end
+  Cliente --> red
+  red -.explica.-> use

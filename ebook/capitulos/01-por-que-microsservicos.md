@@ -1,5 +1,3 @@
-*Contexto histórico — leia antes do [Módulo 0](../../modulos/modulo-00-fundamentos-distribuidos.md).*
-
 ## De um programa só a muitas salas
 
 Até os anos 2000, a maior parte dos sistemas corporativos era um **monólito**: um deploy, um banco, uma equipe que conhecia “o sistema”. Funcionava bem enquanto o time cabia numa sala e o banco aguentava o volume. O problema não era a arquitetura em si — era o **teto** quando crescimento, regulatório e velocidade de mudança passaram a exigir escala organizacional e técnica ao mesmo tempo.
@@ -63,5 +61,3 @@ Quem vende “microsserviço resolve tudo” esconde que **você troca complexid
 ## O que você leva daqui para o lab
 
 Microsserviço **não é** obrigatório para todo problema. Este repositório usa três serviços para **ensinar plataforma** — rede, fila, mesh, observabilidade — não para provar que todo banco deve ter cinquenta APIs.
-
-Próximo: [Módulo 0](../../modulos/modulo-00-fundamentos-distribuidos.md). Antes do lab no cluster, leia [Kubernetes e containers](02-evolucao-containers-kubernetes.md).

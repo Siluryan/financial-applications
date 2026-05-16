@@ -1,0 +1,11 @@
+flowchart TB
+  SYS[System banco-lab]
+  PX[Component servico-pix]
+  LM[Component servico-limites]
+  KF[Resource Kafka]
+  PG[Resource Postgres]
+  SYS --> PX
+  SYS --> LM
+  PX -->|dependsOn| KF
+  PX -->|dependsOn| PG
+  PX -->|calls| LM

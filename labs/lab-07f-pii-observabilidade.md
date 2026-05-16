@@ -67,17 +67,21 @@ Pipeline: `receivers: [otlp]` → `processors: [attributes/redact]` → `exporte
 2. Abra trace no Jaeger — confirme ausência de PII nos atributos.
 3. `kubectl logs` — confirme mascaramento.
 
-### 5. Amostragem (opcional)
+### 5. Tail sampling e custo
 
-Documente quando reduzir sampling em produção sem perder traces de erro.
+1. Documente regra de **tail sampling** no Collector (erro + latência > SLO).
+2. Estime redução de volume vs 100 % (use números do [Lab 02 A6](lab-02-opentelemetry-jaeger.md)).
+3. Confirme que traces de erro ainda aparecem no Jaeger após política.
+
+Diagrama: [`m02-sampling-strategies.png`](../modulos/diagramas/m02-sampling-strategies.png).
 
 ## Deu certo quando
 
 - [ ] Política escrita e revisada.
 - [ ] Log de teste com CPF fictício sai mascarado.
 - [ ] Trace no Jaeger sem campos proibidos.
-- [ ] Checklist §7.8 do plano marcado para este item.
+- [ ] Política de sampling documentada (head/tail).
 
 ## Próximo passo
 
-Revisar [checklist integrador §7.8](../PLANO_DE_ESTUDO.md#modulo-7) e gravar demo de 10–15 min percorrendo caos → trace limpo → Kyverno → Pact.
+[Lab 07g — SRE prático](lab-07g-sre-praticas.md) · [checklist integrador §7.9](../PLANO_DE_ESTUDO.md#modulo-7-integrador)

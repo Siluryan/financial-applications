@@ -96,6 +96,69 @@ Laboratório 07f revisa trace real sem PII.
 | DR | `docs/dr-runbook.md` |
 | PII | apps + `deploy/observability/` |
 
+## 7.7 SRE em produção: incidentes, alertas e cultura
+
+![SLI → SLO → error budget → decisão de deploy](diagramas/m07-sli-slo-sla.png)
+
+O lab ensina ferramentas; **SRE** ensina como operar sob pressão com métricas de confiabilidade.
+
+### Incident command e resposta
+
+| Papel | Responsabilidade |
+|-------|------------------|
+| **Incident Commander (IC)** | Coordena, não debuga sozinho no canto |
+| **Communications** | Status para negócio e clientes |
+| **Subject Matter Expert** | Engenheiro que conhece *Pix* / Kafka |
+| **Scribe** | Linha do tempo para postmortem |
+
+Fluxo típico: detectar → declarar severidade → war room (Slack/Meet) → mitigar → resolver → **postmortem** em 48–72 h.
+
+![Fluxo de incident response](diagramas/m07-incident-response.png)
+
+### Postmortem blameless
+
+**Blameless** não significa “sem responsabilidade” — significa focar em **sistemas e processos**, não em culpar pessoa. Perguntas úteis:
+
+- Por que o deploy passou sem Pact verde?
+- Por que o alerta chegou 20 min depois do cliente?
+- Que guardrail faltou (Kyverno, canary)?
+
+Artefato: timeline UTC, impacto (R$ / clientes), causa raiz, ações com dono e prazo.
+
+### Toil e alert fatigue
+
+**Toil** (livro SRE): trabalho manual, repetitivo, escalável linearmente com tráfego — reiniciar pod à mão todo dia é toil; automatizar restart com probe correto não.
+
+**Alert fatigue**: muitos alertas INFO disfarçados de página → on-call ignora tudo. Regras:
+
+- página só em **sintoma** (SLO queimando), não em causa isolada (CPU 80 %);
+- runbook linkado no alerta;
+- **noisy alert** desligado ou rebaixado após 3 falsos positivos.
+
+### Burn rate e multi-window alerting
+
+SLO de 99,9 % no mês ainda permite “minutos ruins”. **Burn rate** mede **quão rápido** o error budget está sendo consumido.
+
+| Janela | Uso |
+|--------|-----|
+| 5 min / 1 h | Incêndio agora — página |
+| 6 h / 3 d | Tendência — ticket |
+
+![Burn rate multi-window](diagramas/m07-burn-rate.png)
+
+Prometheus (recording rules) ou Grafana SLO: alerte quando burn rate > 14× o budget sustentável — não quando “houve 1 erro”.
+
+### SLI mal desenhado (anti-patterns)
+
+| SLI ruim | Por quê | Melhor |
+|----------|---------|--------|
+| “Pods Running” | Pod up, app quebrada | Latência e erro do *Pix* |
+| “CPU < 80 %” | Não mede cliente | RED do endpoint `/v1/pix` |
+| “Kafka broker up” | Lag pode estar altíssimo | Consumer lag + tempo de processamento |
+| “Logs sem ERROR” | ERROR pode estar desligado | Taxa 5xx + traces com tail sampling |
+
+Ligue SLI ao **jornada do cliente** — débito confirmado, não apenas TCP estabelecido.
+
 ## Critério de conclusão do percurso
 
 Espinha dorsal pronta **e** evidências dos laboratórios 07: segredos fora do Git, outbox no fluxo crítico, Pact no CI, duas políticas Kyverno ativas, restore Postgres ensaiado, trace sem dados proibidos. Opcional: gravação de 10–15 min percorrendo caos → trace limpo → política negando YAML → contrato verde.

@@ -1,5 +1,3 @@
-# Introdução
-
 ## Para quem é este livro
 
 Percurso prático de **microsserviços em contexto financeiro**, para quem trabalha com **plataforma e cloud**: Kubernetes, redes, observabilidade, filas e governança. Não é curso de “programar um banco do zero”.

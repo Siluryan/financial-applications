@@ -1,0 +1,11 @@
+sequenceDiagram
+  participant C as Cliente
+  participant P as servico-pix
+  participant L as servico-limites
+  participant K as Kafka pix.iniciado
+  participant W as worker consumer
+  C->>P: traceparent T1
+  P->>L: traceparent T1
+  P->>K: headers traceparent T1
+  K->>W: consume traceparent T1
+  Note over P,W: Mesmo trace_id em HTTP e fila

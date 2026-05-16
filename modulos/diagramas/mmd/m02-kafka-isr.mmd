@@ -1,0 +1,12 @@
+flowchart TB
+  subgraph part [Partição 0]
+    L[Leader broker 1]
+    F1[Follower broker 2 ISR]
+    F2[Follower broker 3 ISR]
+    O[Follower atrasado fora ISR]
+  end
+  Prod[Producer acks=all] --> L
+  L --> F1
+  L --> F2
+  L -.lag alto.-> O
+  Prod -->|confirma quando ISR ok| Prod

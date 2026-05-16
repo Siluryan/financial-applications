@@ -1,0 +1,14 @@
+flowchart LR
+  subgraph mono [Monólito antigo]
+    M1[Um app um banco]
+  end
+  subgraph micro [Microsserviços lab]
+    PX[servico-pix]
+    LM[servico-limites]
+    KF[(Kafka)]
+    PG[(Postgres)]
+  end
+  Cliente --> PX
+  PX --> LM
+  PX --> KF
+  PX --> PG

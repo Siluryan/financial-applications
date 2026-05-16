@@ -1,0 +1,10 @@
+sequenceDiagram
+  participant O as Orchestrator
+  participant D as Debito contas
+  participant F as Fidelidade
+  O->>D: 1 debitar
+  D-->>O: OK
+  O->>F: 2 pontos
+  F-->>O: FALHA
+  O->>D: 3 compensar estorno
+  D-->>O: OK

@@ -1,5 +1,3 @@
-*Contexto histórico — leia antes do [Módulo 1](../../modulos/modulo-01-resiliencia.md).*
-
 ## Por que resiliência virou disciplina
 
 Nos anos 2010, outages de grandes varejistas e bancos mostraram o mesmo padrão: dependência lenta → **threads esgotadas** → queda em cascata. O cliente via timeout; o painel mostrava “CPU ok”. Não faltava servidor — faltava **limite de espera** e **proteção ao dependente doente**.
@@ -39,5 +37,3 @@ Quando um antifraude ou scoring externo cai, bancos escolhem: **negar transaçã
 | Cascata por dependência | *Toxiproxy* + timeout no *Pix* |
 | Retry storm | Comparar retry com/sem jitter |
 | Dependência crítica fora | Breaker aberto + resposta clara |
-
-Próximo: [teoria do Módulo 1](../../modulos/modulo-01-resiliencia.md) e [Lab 01](../../labs/lab-01-toxiproxy-resiliencia.md).

@@ -1,5 +1,3 @@
-*Guia de estudo — na Introdução do ebook.*
-
 ## Duas trilhas: Compose e kind
 
 | Trilha | Quando usar |

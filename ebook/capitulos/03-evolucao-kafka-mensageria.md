@@ -1,5 +1,3 @@
-*Contexto histórico — leia antes do [Módulo 2](../../modulos/modulo-02-observabilidade.md) (parte Kafka).*
-
 ## Filas antes do Kafka
 
 Sistemas financeiros sempre usaram **filas**: IBM MQ, RabbitMQ, ActiveMQ, TIBCO. O padrão mental era **fila por consumidor** — mensagem consumida, some. Escala vertical, operação madura, contratos rígidos.
@@ -28,11 +26,43 @@ Ordem **garantida por partição**, não globalmente no tópico — por isso cha
 
 Kafka não “resolve” duplicidade sozinho. Na prática:
 
-- produtor com **acks** configuráveis;
-- consumidor com **commit** de offset;
-- **at-least-once** comum → **idempotência** no consumer (Módulo 4).
+- produtor com **acks** configuráveis e **ISR** em dia;
+- consumidor com **commit** de offset após processar;
+- **at-least-once** comum → **idempotência** no consumer (Módulo 4);
+- **transactional producer** para EOS **entre tópicos Kafka**;
+- **outbox** para EOS **Kafka + Postgres**.
 
-**Exactly-once** entre Kafka e banco externo é projeto de engenharia (transações, outbox), não checkbox do broker.
+**Exactly-once** ponta a ponta (API → banco → fila → consumer → outro banco) é projeto de engenharia — não checkbox do broker.
+
+## ISR e durabilidade (aprofundamento)
+
+Cada partição tem **leader** e **followers**. O conjunto **ISR** (*In-Sync Replicas*) são cópias que acompanham o leader dentro do `replica.lag.time.max.ms`.
+
+- `acks=all` + `min.insync.replicas=2` em cluster de 3 brokers: perda de um nó não para gravação.
+- Follower lento **sai do ISR** — não participa de eleição “limpa”.
+- **Unclean election** acelera recuperação à custa de perda de mensagens — raro em pagamentos.
+
+## Consumer groups e rebalance storms
+
+O **group coordinator** (broker) e o **group leader** (consumer) negociam quem lê qual partição. **Rebalance** em todo deploy rolling redistribui partições — durante o rebalance, consumo **pausa**.
+
+**Rebalance storm**: muitos restarts + `max.poll.interval.ms` estourado (processamento lento) → grupo nunca estabiliza → **lag** sobe com API verde.
+
+Mitigações modernas: `group.instance.id` (static membership), **cooperative-sticky** assignor, processamento assíncrono com commit consciente.
+
+## Sticky partitioning e tópicos compactados
+
+Sem chave, o produtor pode usar **sticky partitioner** para agrupar mensagens na mesma partição por lote — throughput, não ordem de negócio.
+
+**Log compaction** (`cleanup.policy=compact`) mantém último valor por chave — catálogo de contas, não histórico de *Pix* imutável.
+
+## Poison pill e DLQ
+
+Mensagem que **sempre** falha trava a partição se o consumer reprocessa infinitamente. Padrão: N retries → tópico **DLQ** → alerta → replay manual após fix.
+
+## Schema evolution
+
+**Schema Registry** versiona Avro/Protobuf. Compatibilidade **BACKWARD** (campo novo opcional) é o padrão mais comum. Quebra silenciosa é incidente de madrugada — combine Registry com Pact (Módulo 7).
 
 ## Ecossistema que cresceu em volta
 
@@ -84,12 +114,3 @@ Este curso liga Kafka a **outbox** (Módulo 7): gravar negócio e evento na mesm
 | **SQS / Service Bus** | Managed na nuvem |
 
 Kafka não é obrigatório — mas é o **linguajar comum** em vagas de plataforma e em labs corporativos.
-
-## Ligação com o livro
-
-- [Módulo 2](../../modulos/modulo-02-observabilidade.md) — lag, traces no publish
-- [Módulo 4](../../modulos/modulo-04-consistencia.md) — idempotência no consumer
-- [Lab 02b](../../labs/lab-02b-kafka-consumer.md)
-- [Lab 07b](../../labs/lab-07b-outbox-kafka.md)
-
-Leia também [observabilidade](04-evolucao-observabilidade.md) (mesmo módulo) → [Módulo 2](../../modulos/modulo-02-observabilidade.md).

@@ -1,0 +1,8 @@
+flowchart LR
+  Detect[Alerta SLO] --> Declare[Declarar incidente]
+  Declare --> IC[Incident Commander]
+  IC --> Mitigate[Mitigar]
+  Mitigate --> Resolve[Resolver]
+  Resolve --> PM[Postmortem blameless]
+  IC --> Comms[Comunicação]
+  IC --> SME[Experts Pix Kafka]

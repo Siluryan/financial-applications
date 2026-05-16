@@ -1,0 +1,9 @@
+sequenceDiagram
+  participant D as Deploy rolling
+  participant G as Consumer group
+  participant K as Kafka
+  D->>G: rebalance
+  G->>K: pause consume
+  Note over G,K: Lag sobe API ainda 200
+  D->>G: rebalance de novo
+  G->>K: nunca estabiliza

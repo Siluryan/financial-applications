@@ -1,0 +1,10 @@
+flowchart TB
+  subgraph windows [Janelas de burn rate]
+    W1[5 min página imediata]
+    W2[1 h tendência forte]
+    W3[6 h ticket prioritário]
+  end
+  SLO[SLO 99.9% Pix] --> EB[Error budget]
+  EB --> windows
+  windows --> Page[On-call]
+  windows --> Ticket[Backlog plataforma]

@@ -1,5 +1,3 @@
-*Contexto histórico — complementa [LGPD/PCI](contexto-m07-lgpd-pci.md) e o [Módulo 7](../../modulos/modulo-07-operacao-conformidade.md).*
-
 ## Vazamento de dados e confiança
 
 ### Equifax (2017)
@@ -42,5 +40,3 @@ Consumidor interno assume JSON estável; provedor renomeia campo — falha só e
 ## O que não é objetivo deste capítulo
 
 Não substituir assessoria jurídica nem checklist PCI oficial — ancora **por que** o lab existe em banco real.
-
-Próximo: [Módulo 7](../../modulos/modulo-07-operacao-conformidade.md).

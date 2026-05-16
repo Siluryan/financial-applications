@@ -12,6 +12,8 @@ O *Pix* depende de *Limites*. Quando *Limites* engasga, o cliente vê loading in
 
 *Limites* fora não pode derrubar o canal inteiro; retries sem limite nem critério pioram o incidente.
 
+> **Figuras:** fluxo Toxiproxy · retry storm · timeout chain · circuit breaker.
+
 Este capítulo usa o *servico-pix* e o *servico-limites*. O *Pix* precisa responder rápido; o *Limites* pode oscilar por coleta de lixo da JVM (**GC**), deploy ou pico. Você simula falhas com um **proxy de caos** (*Toxiproxy*) — um “interruptor de latência” na rede — e implementa **Tenacity** (retry) e **pybreaker** (breaker) no Python.
 
 ## Cenário no laboratório
@@ -49,6 +51,8 @@ Quando *Limites* reinicia e centenas de *Pix* retentam no mesmo segundo, o tráf
 ### Orçamento de timeout em cadeia
 
 Imagine três relógios em fila: **gateway** (porta do banco para o app) → **Pix** → **Limites**. O relógio de fora precisa ser o maior; o de dentro, o menor. Se o *Pix* espera 5 s em *Limites* mas o gateway mata tudo em 3 s, o cliente vê **504 Gateway Timeout** sem saber onde travou. Propague **deadline** (prazo que vai no cabeçalho HTTP e no trace OpenTelemetry) para cancelar trabalho inútil.
+
+![Cadeia de timeouts](diagramas/m01-timeout-chain.png)
 
 ### Load shedding (descarte controlado)
 

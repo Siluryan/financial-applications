@@ -1,0 +1,12 @@
+flowchart LR
+  subgraph head [Head-based]
+    H1[Primeiro span decide]
+    H2[90% descartados no início]
+  end
+  subgraph tail [Tail-based]
+    T1[Jornada completa em buffer]
+    T2[Regra: erro ou p99 alto]
+    T3[Grava trace inteiro]
+  end
+  Req[Requisição Pix] --> head
+  Req --> tail

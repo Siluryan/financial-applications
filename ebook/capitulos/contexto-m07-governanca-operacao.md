@@ -1,5 +1,3 @@
-*Contexto histórico — complementa o [Módulo 7](../../modulos/modulo-07-operacao-conformidade.md).*
-
 ## Segredos: do post-it ao cofre
 
 1. Senha no Git — histórico eterno.  
@@ -37,5 +35,3 @@ Backup sem **restore ensaiado** é plano no papel. Lab 07e cronometra volta do P
 | 2018 | Argo CD |
 | 2019 | Kyverno; External Secrets maduro |
 | 2020s | SBOM, supply chain, policy-as-code |
-
-Próximo: [Módulo 7](../../modulos/modulo-07-operacao-conformidade.md) · labs [07a–07f](../../labs/README.md).

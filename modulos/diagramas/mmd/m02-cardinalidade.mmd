@@ -1,0 +1,11 @@
+flowchart LR
+  subgraph ok [Labels OK]
+    L1[service=pix]
+    L2[status=5xx]
+  end
+  subgraph bad [Labels perigosos]
+    B1[user_id=acc_1]
+    B2[user_id=acc_2]
+    B3[user_id=acc_N]
+  end
+  bad --> Explode[Milhões de séries Prometheus]

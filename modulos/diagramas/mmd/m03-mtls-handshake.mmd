@@ -1,0 +1,10 @@
+sequenceDiagram
+  participant A as Envoy Pix
+  participant B as Envoy Limites
+  participant I as Istiod CA
+  A->>I: cert SPIFFE curta duração
+  B->>I: cert SPIFFE curta duração
+  A->>B: ClientHello
+  B->>A: ServerHello + cert servidor
+  A->>B: cert cliente mTLS
+  A->>B: HTTP GET /v1/limits

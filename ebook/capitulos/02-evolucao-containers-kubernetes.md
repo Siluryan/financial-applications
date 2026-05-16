@@ -1,5 +1,3 @@
-*Contexto histórico — leia antes da [Onda 0 / Lab 00](../../labs/lab-00-kind-banco-minimo.md).*
-
 ## Antes do container: o problema do “funciona na minha máquina”
 
 Deploy antigo: instalar pacotes no servidor, ajustar bibliotecas, rezar para homologação ser igual à produção. **Máquina virtual (VM)** isolou melhor — cada app com seu SO — mas cada VM carrega disco e boot inteiros. Escala lenta, custo alto.
@@ -69,11 +67,3 @@ No lab, **kind** (*Kubernetes in Docker*) sobe um cluster leve no laptop — o m
 **Resistência:** skill gap, legado em VM, custo de cluster mal dimensionado, medo de “abstrair demais” sem observabilidade.
 
 Este livro assume: você **já** vai operar algo tipo K8s; o foco é **defender** o serviço financeiro em cima dele (probes, limits, secrets, políticas).
-
-## Ligação com os módulos
-
-- [Onda 0 / Lab 00](../../labs/lab-00-kind-banco-minimo.md) — primeiro deploy
-- [Módulo 5](../../modulos/modulo-05-deploy-gitops.md) — canary, GitOps, HPA
-- [Módulo 7](../../modulos/modulo-07-operacao-conformidade.md) — Kyverno, segredos
-
-Próximo: [Lab 00 — banco mínimo no *kind*](../../labs/lab-00-kind-banco-minimo.md). Kafka e observabilidade entram nos capítulos antes dos Módulos 2.

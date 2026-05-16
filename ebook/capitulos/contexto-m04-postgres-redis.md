@@ -1,5 +1,3 @@
-*Contexto histórico — leia antes do [Módulo 4](../../modulos/modulo-04-consistencia.md).*
-
 ## PostgreSQL: o caderno que o banco ainda confia
 
 **PostgreSQL** nasce da academia (POSTGRES, anos 1980) e virou referência para **ACID** open source. Bancos usam Oracle, Db2 e SQL Server há décadas; fintechs e novos núcleos adotaram Postgres pela maturidade, extensões (JSON, particionamento) e custo.
@@ -50,5 +48,3 @@ Padrão maduro: Redis como **primeira linha**; Postgres como **verdade** e audit
 | 2009 | Redis |
 | 2010s | Patroni, operadores K8s para Postgres |
 | 2020s | Outbox pattern mainstream em microsserviços |
-
-Próximo: [incidentes de dados](contexto-m04-incidentes-dados.md) → [Módulo 4](../../modulos/modulo-04-consistencia.md).

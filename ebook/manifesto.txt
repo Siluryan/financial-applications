@@ -86,6 +86,7 @@ labs/lab-07c-pact-contratos.md
 labs/lab-07d-kyverno-admission.md
 labs/lab-07e-disaster-recovery.md
 labs/lab-07f-pii-observabilidade.md
+labs/lab-07g-sre-praticas.md
 
 @parte Glossário
 @secao apendice
@@ -99,3 +100,7 @@ deploy/kafka/README.md
 deploy/toxiproxy/README.md
 deploy/istio/README.md
 modulos/diagramas/README.md
+
+@parte Sobre o autor
+@secao apendice
+ebook/sobre-o-autor.md

@@ -2,6 +2,8 @@
 
 **Laboratório:** [05 — Canary e GitOps](../labs/lab-05-canary-gitops.md)
 
+> **Figuras:** canary por peso · loop GitOps (reconciliação).
+
 ## Mudança sem medo (ou com medo calculado)
 
 **Canary** expõe uma fração do tráfego à versão nova; **mirror** copia tráfego para teste sem mudar a resposta ao cliente — como testar prato em uma mesa antes do cardápio inteiro.

@@ -8,6 +8,8 @@ Dois cliques em “pagar” podem ler o mesmo saldo e ambos passar — impossív
 
 Este capítulo conecta **Redis**, **PostgreSQL** e **Kafka** ao fluxo do *Pix* que você já opera no lab.
 
+> **Figuras:** MVCC/isolamento · saga estilos · orquestração · outbox · 2PC vs saga.
+
 ## Cenário no laboratório
 
 O *servico-pix* já envia o cabeçalho `Idempotency-Key`; falta **persistir** o estado da operação e proteger saldos contra corrida. Você demonstrará o furo sem controle, corrigirá com lock otimista ou pessimista e garantirá que replays HTTP e mensagens Kafka duplicadas não gerem efeito em dobro.
@@ -28,6 +30,34 @@ Entre *Pix* e *Limites* não existe `BEGIN` único. O padrão é **BASE**:
 
 Há acordos explícitos (outbox, idempotência, compensação), não um único botão “commit global”.
 
+## Isolamento no PostgreSQL: níveis e anomalias
+
+![MVCC e conflito de versão na linha](diagramas/m04-isolamento-mvcc.png)
+
+Dentro de um banco, **isolamento** define o que uma transação “enxerga” de outras simultâneas. O PostgreSQL implementa **MVCC** (*Multi-Version Concurrency Control*): leituras veem um **snapshot** consistente; escritas criam novas versões de linha; versões antigas são limpas pelo **VACUUM**.
+
+| Nível SQL | Anomalia evitada | O que ainda pode acontecer |
+|-----------|------------------|----------------------------|
+| **READ UNCOMMITTED** | — (no PG equivale a READ COMMITTED) | Dirty read (não no PG) |
+| **READ COMMITTED** | Dirty read | Non-repeatable read, phantom |
+| **REPEATABLE READ** | Non-repeatable read | Phantom (parcialmente no PG) |
+| **SERIALIZABLE** | Phantom (via SSI no PG) | Mais aborts por conflito |
+
+| Anomalia | Cenário *Pix* |
+|----------|----------------|
+| **Dirty read** | Ler saldo que outra transação ainda não confirmou |
+| **Non-repeatable read** | Ler saldo 100, outra transação debita, ler 10 na mesma transação |
+| **Phantom read** | `SELECT COUNT(*)` de débitos do dia muda porque outra transação inseriu linha |
+| **Write skew** | Duas transações leem regras compatíveis separadamente e escrevem juntas violando invariante global (ex.: dois limites diários em contas diferentes que somados estouram política) |
+
+**Write skew** não é resolvido só com lock na linha — precisa lock em **intervalo** (`SELECT … FOR UPDATE` na faixa relevante) ou **SERIALIZABLE**.
+
+### MVCC na prática
+
+- Leitores não bloqueiam escritores (snapshot).
+- `UPDATE` concorrente na mesma linha: uma ganha, outra espera ou falha.
+- Coluna `version` no lock otimista é camada de aplicação **sobre** MVCC — `UPDATE … WHERE version = ?` detecta conflito sem segurar linha o tempo todo.
+
 ## Lock otimista: versão como juiz
 
 Como editar planilha com número de revisão: só grava quem ainda vê a mesma revisão. Adicione coluna `version` à conta:
@@ -42,6 +72,8 @@ Se nenhuma linha for afetada, outra transação ganhou — retorne conflito (`40
 ## Lock pessimista: segurança na transação
 
 `SELECT ... FOR UPDATE` tranca a fila do caixa até terminar o atendimento (**COMMIT** no SQL). Ninguém mexe no saldo naquela janela. Mais seguro, menos paralelismo — comum quando a mesma conta recebe muitos *Pix* por segundo.
+
+`SELECT … FOR UPDATE SKIP LOCKED` permite filas de trabalho: pega a próxima linha livre sem esperar — útil em workers, não no débito da mesma conta simultâneo sem desenho cuidadoso.
 
 ## Idempotência: a mesma chave, o mesmo efeito
 
@@ -81,6 +113,32 @@ Kafka entrega **at-least-once** na prática: a mesma mensagem `pix.iniciado` pod
 Exemplo narrativo: débito em contas OK → pontos em fidelidade falha → **estorno** em contas com lançamento reverso no ledger. Prefira **ledger imutável** (novos lançamentos) a apagar histórico — auditoria e regulatório agradecem.
 
 ![Orquestração vs coreografia](diagramas/m04-saga-estilos.png)
+
+![Saga orquestrada — passos e compensação](diagramas/m04-saga-orchestration.png)
+
+### 2PC vs saga: transações distribuídas reais
+
+![2PC coordenado vs saga com compensação](diagramas/m04-2pc-vs-saga.png)
+
+**Two-Phase Commit (2PC)** é o protocolo clássico de transação distribuída:
+
+1. **Prepare**: coordenador pergunta a todos os participantes “consegue commitar?”
+2. **Commit** ou **Abort**: se todos disseram sim, commit global; senão, abort.
+
+| | 2PC | Saga |
+|---|-----|------|
+| Consistência imediata | Forte (se completar) | Eventual entre passos |
+| Bloqueio | Participantes seguram locks na fase prepare | Passos locais curtos |
+| Falha do coordenador | Bloqueio até recuperação | Compensação explícita |
+| Uso em microsserviços | Raro (XA/JTA legado) | Padrão dominante |
+
+Em microsserviços financeiros, **2PC entre *Pix* e *Limites*** é frágil (latência, indisponibilidade parcial, acoplamento). Prefira **saga** + **outbox** + **idempotência**. 2PC ainda aparece **dentro** de um cluster (Postgres + outbox na mesma transação) — não entre dez HTTPs.
+
+### Consistência causal e leitura
+
+**Consistência causal**: se evento A causou B, todo leitor que vir B deve poder ver A. Kafka com mesma chave na mesma partição preserva ordem causal **por conta**. Entre tópicos diferentes, use **version vectors** ou timestamps de negócio no payload — não confie só no relógio do servidor.
+
+**Read-your-writes**: após o *Pix* gravar, a consulta de saldo do mesmo usuário deve ir ao primário ou esperar projeção — senão o app mostra saldo antigo (“cadê meu dinheiro?”).
 
 ### Aprofundamento: o que o lab não simplifica
 

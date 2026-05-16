@@ -8,6 +8,8 @@ Um banco que era um prédio só — um programa, um banco de dados — modernizo
 
 Cada porta é uma **fronteira de falha** — se a sala de limites trava, as outras podem continuar ou não, conforme o desenho. É também **fronteira de consistência**: cada sala tem sua agenda; não há mais um único caderno de contabilidade.
 
+![Do monólito às salas do lab](diagramas/m00-arquitetura-salas.png)
+
 ## Consistência
 
 Dois caixas leem o mesmo saldo e aprovam débitos que, somados, estouram a conta. **Consistência** é todos enxergarem uma história que fecha. Num PostgreSQL, uma **transação ACID** resolve isso num lugar. Entre serviços, entram trancas, versão na linha ou **consistência eventual** — as cópias alinham depois de eventos e retries.
@@ -23,6 +25,8 @@ Fila “confiável” quase sempre significa **mensagem duplicada possível**. S
 No lab: header no curl; Redis + Postgres no `servico-pix`; relay publica `pix.iniciado`.
 
 ## CAP — quando a rede corta
+
+![Trade-off CAP em partição](diagramas/m00-cap-tradeoff.png)
 
 Três agências compartilham um livro-caixa e **cai a linha** entre elas (**partição**, o P de **CAP**). Ou todo mundo segue atendendo e os números podem divergir até a linha voltar (**disponibilidade**, A), ou alguém trava o balcão até alinhar o livro (**consistência**, C). Com partição ativa, não dá C+A+P ao mesmo tempo.
 

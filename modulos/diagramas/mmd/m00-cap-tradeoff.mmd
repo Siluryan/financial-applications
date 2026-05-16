@@ -1,0 +1,6 @@
+flowchart TB
+  P[Partição de rede]
+  P --> C[Consistência CP]
+  P --> A[Disponibilidade AP]
+  C --> ExC[Trava até alinhar saldo]
+  A --> ExA[Responde e conserta depois]
