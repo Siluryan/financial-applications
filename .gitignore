@@ -62,3 +62,8 @@ build/
 
 # Ebook gerado (fonte = Markdown no repo)
 ebook/build/
+
+# Ferramentas locais de build (diagramas)
+.tools/
+node_modules/
+package-lock.json

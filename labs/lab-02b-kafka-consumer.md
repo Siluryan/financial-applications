@@ -1,29 +1,40 @@
 # Lab 02b — Apache Kafka (tópico, consumer, lag)
 
-[← Índice dos labs](README.md) · **Onda 2** · [Módulo 2](../modulos/modulo-02-observabilidade.md) · [`PLANO` §2.5](../PLANO_DE_ESTUDO.md#estudo-kafka)
+[← Índice dos labs](README.md) · [Módulo 2](../modulos/modulo-02-observabilidade.md)
 
 ## Objetivo
 
-Publicar `pix.iniciado`, consumir com um worker, medir **consumer lag** e correlacionar falha no broker com resposta do *Pix*.
+Publicar eventos em `pix.iniciado`, consumir com um worker, medir **consumer lag** e observar como falha no broker afeta a resposta HTTP do *Pix* sem bloquear o cliente.
 
-**Tópico** é a caixa do correio (`pix.iniciado`). **Consumer group** é a equipe de carteiros com o mesmo nome (`lab-worker`): o Kafka divide as cartas entre eles; se um carteiro some, as cartas são redistribuídas (**rebalance**). **Lag** é quantas cartas ainda estão na caixa esperando leitura — API rápida com lag alto significa fila acumulada no fundo. **Broker** é o armazém que guarda as mensagens; se cair, o *Pix* pode responder “degraded” enquanto o outbox (lab 07b) segura o que já foi gravado no Postgres.
+Mensageria desacopla o caminho **síncrono** (aprovar na hora) do **assíncrono** (antifraude, notificação). O cliente recebe 200 antes do consumer terminar — por isso lag alto pode coexistir com API “rápida”, um padrão perigoso se ninguém monitorizar a fila.
+
+**Vocabulário (fixe antes dos comandos):**
+
+| Termo | Significado |
+|-------|-------------|
+| **Tópico** | Canal nomeado (`pix.iniciado`) |
+| **Consumer group** | Conjunto de consumidores que dividem partições (`lab-worker`) |
+| **Lag** | Mensagens publicadas − processadas |
+| **Broker** | Nó que persiste partições |
+
+**Tempo estimado:** 90–150 min (inclui implementação do worker).
 
 ## Antes de começar
 
 ### Conhecimento (este lab)
 
-- Evento `pix.iniciado` = mensagem assíncrona depois do HTTP (não trava a tela).
-- Noções de **tópico**, **consumer group** e **lag** — explicadas no objetivo e no [Módulo 2](../modulos/modulo-02-observabilidade.md).
+- Evento `pix.iniciado` é publicado **depois** da resposta HTTP (não trava a UI).
+- [Fundamentos — Kafka](../ebook/capitulos/fundamentos-kafka.md) e [Módulo 2](../modulos/modulo-02-observabilidade.md).
 
 ### Labs anteriores
 
-- [Lab 00](lab-00-kind-banco-minimo.md) ou Compose — *Pix* publica (ou enfileira) evento.
-- [Lab 02](lab-02-opentelemetry-jaeger.md) recomendado se quiser correlacionar trace no consumer.
+- [Lab 00](lab-00-kind-banco-minimo.md) ou Compose — *Pix* responde.
+- [Lab 02](lab-02-opentelemetry-jaeger.md) recomendado para correlacionar trace no consumer.
 
 ### Ambiente
 
 - **`docker compose`** (caminho mais rápido) **ou** Kafka no *kind* ([`deploy/kafka/README.md`](../deploy/kafka/README.md)).
-- **~2 GB RAM** extras para o broker; não subir Istio no mesmo momento se tiver 8 GB no total.
+- **~2 GB RAM** extras; com 8 GB no total, não suba Istio + Kafka + Jaeger em simultâneo.
 
 ## Passos (Docker Compose)
 
@@ -32,6 +43,8 @@ Publicar `pix.iniciado`, consumir com um worker, medir **consumer lag** e correl
 ```bash
 docker compose up --build -d
 ```
+
+Aguarde `healthy` nos serviços críticos (`docker compose ps`). O broker Kafka demora alguns segundos a aceitar conexões.
 
 ### 2. Publicar um *Pix* aprovado
 
@@ -42,9 +55,11 @@ curl -sS -X POST http://127.0.0.1:8000/v1/pix \
   -d '{"account_id":"acc_demo","amount":10,"destination":"acc_dest_1"}' | jq .
 ```
 
-Campo `"kafka": "published"` indica envio ao tópico.
+**Campo a observar:** `"kafka": "published"` (modo síncrono legado) ou `"outbox_pending"` (modo outbox, lab 07b). Anote qual modo o seu `docker-compose.yml` activa.
 
-### 3. Ler o tópico
+### 3. Ler o tópico (inspeção)
+
+Console consumer para ver mensagens brutas:
 
 ```bash
 docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
@@ -54,9 +69,11 @@ docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
   --max-messages 3
 ```
 
+**Esperado:** JSON com `account_id`, `idempotency_key`, metadados do evento. Se vazio, o *Pix* não publicou — verifique env `KAFKA_BOOTSTRAP_SERVERS` e logs do *Pix*.
+
 ### 4. Consumer group e lag
 
-Em outro terminal, produza várias mensagens (repita o `curl` com chaves idempotentes diferentes).
+Produza várias mensagens (repita o `curl` com chaves idempotentes diferentes: `lab-02b-002`, `003`, …).
 
 ```bash
 docker compose exec kafka /opt/kafka/bin/kafka-consumer-groups.sh \
@@ -65,85 +82,82 @@ docker compose exec kafka /opt/kafka/bin/kafka-consumer-groups.sh \
   --group lab-worker
 ```
 
-*(O group `lab-worker` existirá depois que você subir um consumer — passo 5.)*
+O group `lab-worker` só aparece **depois** do passo 5 (worker a correr). Colunas úteis: `LAG` por partição — zero significa fila vazia para esse consumidor.
 
-### 5. Worker mínimo (sua entrega)
+### 5. Worker consumer
 
-Crie `apps/worker-pix-consumer/` com `aiokafka`:
+O **relay outbox** (`apps/worker-outbox-relay/`) publica no tópico. Neste passo você implementa o **consumer de domínio** que processa `pix.iniciado`.
+
+Crie o projeto `apps/worker-pix-consumer/` com `aiokafka`:
 
 - Consumer group: `lab-worker`
 - Tópico: `pix.iniciado`
-- Log JSON por mensagem; opcional: header `traceparent` do payload
+- Log JSON por mensagem (`account_id`, `idempotency_key`)
+- **Deduplicar** por `idempotency_key` antes de efeito colateral (ligação com Módulo 4)
+- Propagar headers W3C e correlacionar ao trace do *Pix* ([Lab 02](lab-02-opentelemetry-jaeger.md))
 
 Rode no Compose com `KAFKA_BOOTSTRAP_SERVERS=kafka:9092`.
 
-### 6. Simular broker lento / fora
+**Publicação:** com outbox (`PIX_USE_OUTBOX=true`), mensagens vêm do relay; com `PIX_SYNC_KAFKA=true`, o *Pix* publica directo — compare no [Lab 07b](lab-07b-outbox-kafka.md).
+
+### 6. Simular broker fora
 
 ```bash
 docker compose stop kafka
 ```
 
-Chame o *Pix* de novo e observe o campo `kafka` na resposta (`error` vs `published`).
+Chame o *Pix* de novo. **Observe** o campo `kafka` na resposta (`error`, `degraded`, `outbox_pending`). O HTTP deve continuar a responder — o utilizador não fica à espera do broker.
+
+Suba Kafka (`docker compose start kafka`) e verifique se mensagens pendentes na outbox ou na fila são processadas.
 
 ## Passos (kind)
 
 1. Instale Kafka conforme [`deploy/kafka/README.md`](../deploy/kafka/README.md).
 2. No Deployment do *Pix*, defina `KAFKA_BOOTSTRAP_SERVERS`.
-3. Use `kcat` ou console consumer a partir de um pod (comando no README do Kafka).
+3. Use `kcat` ou console consumer a partir de um pod — comandos no README do Kafka.
 
 ## Exercícios avançados (nível SRE)
 
-Referência: [Módulo 2 § Kafka](../modulos/modulo-02-observabilidade.md) · [PLANO §2.5](../PLANO_DE_ESTUDO.md#estudo-kafka).
-
 ### A1 — ISR e `acks`
 
-1. Com 3 brokers (ou documente simulação), descreva o que acontece se um follower sair do ISR.
-2. Configure produtor com `acks=all` (se usar `aiokafka`/librdkafka) e pare um broker; observe erro no *Pix* ou relay.
-3. Registre: “por que `acks=1` é arriscado para `pix.iniciado`?”
-
-Diagrama: [`m02-kafka-isr.png`](../modulos/diagramas/m02-kafka-isr.png).
+Documente impacto de follower fora do ISR; teste `acks=all` com broker parado.
 
 ### A2 — Rebalance storm
 
-1. Suba 2 réplicas do worker (`docker compose up --scale worker=2`).
-2. Faça rolling restart (`docker compose restart worker`) enquanto gera carga com loop de `curl`.
-3. Capture `kafka-consumer-groups --describe` durante o rebalance — lag sobe?
-4. Mitigação escrita: `group.instance.id` ou cooperative assignor.
+Duas réplicas do worker + restart durante carga; observe lag no `kafka-consumer-groups`.
 
-### A3 — `max.poll.interval` e consumer “morto”
+### A3 — `max.poll.interval`
 
-1. No worker, adicione `sleep(120)` antes do commit (só em ambiente de lab).
-2. Observe consumer expulso do grupo e rebalance.
-3. Remova o sleep; confirme estabilização.
+`sleep(120)` no consumer antes do commit — observe expulsão do grupo.
 
-### A4 — Ordem por chave / partições
+### A4 — Ordem por chave
 
-1. Publique 10 *Pix* com **mesmo** `account_id` — ordem preservada na partição?
-2. Publique com `account_id` diferentes — paralelismo entre partições?
-3. Propague `traceparent` nos headers Kafka e valide trace no consumer ([Lab 02](lab-02-opentelemetry-jaeger.md) A7).
+Dez *Pix* com mesmo `account_id` vs contas diferentes — ordem e paralelismo.
 
-Diagramas: [`m02-kafka-partitions.png`](../modulos/diagramas/m02-kafka-partitions.png), [`m02-trace-propagation.png`](../modulos/diagramas/m02-trace-propagation.png).
+### A5 — Tópico compactado
 
-### A5 — Tópico compactado (leitura + opcional)
+Tópico `conta.estado` com `cleanup.policy=compact`.
 
-1. Crie tópico `conta.estado` com `cleanup.policy=compact`.
-2. Publique duas mensagens mesma chave `acc_demo` com valores diferentes.
-3. Console-consumer: só último valor permanece?
+### A6 — Poison pill
 
-### A6 — Poison pill (preparação para 07b)
-
-1. Publique mensagem JSON inválida ou campo obrigatório ausente.
-2. Worker falha em loop — lag sobe.
-3. Esboce política: após 3 falhas → tópico `pix.iniciado.dlq` (implementação completa no [Lab 07b](lab-07b-outbox-kafka.md)).
+Mensagem inválida → lag sobe → política DLQ (completa no lab 07b).
 
 ## Deu certo quando
 
-- [ ] Mensagem JSON aparece em `pix.iniciado` após *Pix* aprovado.
-- [ ] Worker consome e loga `idempotency_key` / `account_id`.
-- [ ] Com broker parado, *Pix* ainda responde (degraded) e indica falha Kafka na resposta.
-- [ ] Você explica o que é **lag** e por que at-least-once exige idempotência no consumer ([Módulo 4](../modulos/modulo-04-consistencia.md)).
-- [ ] (Avançado) Pelo menos **três** exercícios A1–A6 concluídos com evidência.
+- [ ] Mensagem JSON em `pix.iniciado` após *Pix* aprovado.
+- [ ] Worker consome e regista `idempotency_key` / `account_id`.
+- [ ] Com broker parado, *Pix* responde e indica falha ou pendência Kafka.
+- [ ] Você explica **lag** e por que at-least-once exige idempotência no consumer.
+- [ ] Pelo menos três exercícios avançados A1–A6 concluídos com evidência escrita.
+
+## Troubleshooting
+
+| Sintoma | Ação |
+|---------|------|
+| Tópico vazio | Logs do *Pix*; `KAFKA_BOOTSTRAP_SERVERS`; modo outbox vs sync |
+| Group não existe | Subir worker do passo 5 |
+| Lag infinito | Worker parado ou a falhar em loop — ver logs do consumer |
 
 ## Próximo passo
 
-[Lab 04 — Redis e Postgres](lab-04-redis-postgres-idempotencia.md) · [Lab 07b — Outbox/DLQ](lab-07b-outbox-kafka.md) · [PLANO — nível avançado](../PLANO_DE_ESTUDO.md#nivel-avancado)
+[Lab 04 — Redis e Postgres](lab-04-redis-postgres-idempotencia.md) · [Lab 07b — Outbox/DLQ](lab-07b-outbox-kafka.md)

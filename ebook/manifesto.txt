@@ -1,27 +1,33 @@
 # Manifesto do ebook — teoria + laboratório integrados por parte
-# Linhas especiais: @parte Título | @secao teoria|lab|intro|contexto|apendice
+# Linhas especiais: @parte Título | @secao teoria|lab|intro|contexto|fundamentos-*|apendice
 
 @parte Introdução
 @secao intro
+ebook/AVISO-LEGAL-EDITORIAL.md
 ebook/INTRODUCAO.md
 ebook/SIGLAS-RAPIDAS.md
 ebook/PRE-REQUISITOS.md
+ebook/capitulos/fundamentos-indice.md
 ebook/CONVENCOES_EDITORIAIS.md
 ebook/capitulos/07-como-estudar-com-este-livro.md
 
-@parte Módulo 0 — Fundamentos distribuídos
+@parte Módulo 0 — Fundamentos e banco mínimo
 @secao contexto
 ebook/capitulos/01-por-que-microsservicos.md
 @secao teoria
 modulos/modulo-00-fundamentos-distribuidos.md
-
-@parte Onda 0 — Banco mínimo no cluster
-@secao contexto
+@secao fundamentos-http
+ebook/capitulos/fundamentos-http-fastapi.md
+@secao fundamentos-docker
+ebook/capitulos/fundamentos-docker-kubernetes.md
+@secao contexto-k8s
 ebook/capitulos/02-evolucao-containers-kubernetes.md
 @secao lab
 labs/lab-00-kind-banco-minimo.md
 
 @parte Módulo 1 — Resiliência e caos na rede
+@secao fundamentos-resiliencia
+ebook/capitulos/fundamentos-resiliencia.md
 @secao contexto
 ebook/capitulos/contexto-m01-incidentes-resiliencia.md
 @secao teoria
@@ -30,6 +36,10 @@ modulos/modulo-01-resiliencia.md
 labs/lab-01-toxiproxy-resiliencia.md
 
 @parte Módulo 2 — Observabilidade e Kafka
+@secao fundamentos-otel
+ebook/capitulos/fundamentos-opentelemetry.md
+@secao fundamentos-kafka
+ebook/capitulos/fundamentos-kafka.md
 @secao contexto
 ebook/capitulos/04-evolucao-observabilidade.md
 ebook/capitulos/03-evolucao-kafka-mensageria.md
@@ -40,6 +50,8 @@ labs/lab-02-opentelemetry-jaeger.md
 labs/lab-02b-kafka-consumer.md
 
 @parte Módulo 3 — Service mesh e mTLS
+@secao fundamentos-istio
+ebook/capitulos/fundamentos-istio-mesh.md
 @secao contexto
 ebook/capitulos/05-evolucao-service-mesh.md
 @secao teoria
@@ -48,6 +60,8 @@ modulos/modulo-03-service-mesh.md
 labs/lab-03-istio-mtls.md
 
 @parte Módulo 4 — Concorrência, idempotência e sagas
+@secao fundamentos-dados
+ebook/capitulos/fundamentos-postgres-redis.md
 @secao contexto
 ebook/capitulos/contexto-m04-postgres-redis.md
 ebook/capitulos/contexto-m04-incidentes-dados.md
@@ -57,6 +71,8 @@ modulos/modulo-04-consistencia.md
 labs/lab-04-redis-postgres-idempotencia.md
 
 @parte Módulo 5 — Deploy, canary e GitOps
+@secao fundamentos-gitops
+ebook/capitulos/fundamentos-gitops-deploy.md
 @secao contexto
 ebook/capitulos/contexto-m05-gitops-canary.md
 @secao teoria
@@ -92,14 +108,13 @@ labs/lab-07g-sre-praticas.md
 @secao apendice
 ebook/GLOSSARIO.md
 
-@parte Apêndice — Referência rápida no repositório
+@parte Apêndice — Referência rápida
 @secao apendice
 apps/README.md
 deploy/kind/README.md
 deploy/kafka/README.md
 deploy/toxiproxy/README.md
 deploy/istio/README.md
-modulos/diagramas/README.md
 
 @parte Sobre o autor
 @secao apendice

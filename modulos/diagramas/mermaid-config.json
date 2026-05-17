@@ -1,0 +1,89 @@
+{
+  "theme": "base",
+  "themeVariables": {
+    "darkMode": false,
+    "fontFamily": "\"Source Sans Pro\", \"Helvetica Neue\", Arial, sans-serif",
+    "fontSize": "15px",
+    "background": "#ffffff",
+    "primaryColor": "#e8f0fe",
+    "primaryTextColor": "#0f172a",
+    "primaryBorderColor": "#1e40af",
+    "secondaryColor": "#f1f5f9",
+    "secondaryTextColor": "#0f172a",
+    "secondaryBorderColor": "#475569",
+    "tertiaryColor": "#ffffff",
+    "tertiaryTextColor": "#0f172a",
+    "tertiaryBorderColor": "#94a3b8",
+    "lineColor": "#334155",
+    "textColor": "#0f172a",
+    "mainBkg": "#e8f0fe",
+    "nodeBorder": "#1e40af",
+    "clusterBkg": "#f8fafc",
+    "clusterBorder": "#64748b",
+    "defaultLinkColor": "#334155",
+    "titleColor": "#0f172a",
+    "edgeLabelBackground": "#ffffff",
+    "nodeTextColor": "#0f172a",
+    "actorBorder": "#1e40af",
+    "actorBkg": "#e8f0fe",
+    "actorTextColor": "#0f172a",
+    "actorLineColor": "#334155",
+    "signalColor": "#334155",
+    "labelBoxBkgColor": "#f8fafc",
+    "labelBoxBorderColor": "#64748b",
+    "labelTextColor": "#0f172a",
+    "loopTextColor": "#0f172a",
+    "noteBkgColor": "#fffbeb",
+    "noteBorderColor": "#b45309",
+    "noteTextColor": "#0f172a",
+    "activationBorderColor": "#1e40af",
+    "activationBkgColor": "#dbeafe",
+    "sequenceNumberColor": "#ffffff",
+    "sectionBkgColor": "#e8f0fe",
+    "altSectionBkgColor": "#f1f5f9",
+    "sectionBkgColor2": "#f8fafc",
+    "excludeBkgColor": "#fef2f2",
+    "taskBorderColor": "#1e40af",
+    "taskBkgColor": "#e8f0fe",
+    "taskTextColor": "#0f172a",
+    "taskTextLightColor": "#0f172a",
+    "activeTaskBorderColor": "#0d9488",
+    "activeTaskBkgColor": "#ccfbf1",
+    "gridColor": "#cbd5e1",
+    "doneTaskBkgColor": "#e2e8f0",
+    "doneTaskBorderColor": "#64748b",
+    "critBorderColor": "#b91c1c",
+    "critBkgColor": "#fee2e2",
+    "todayLineColor": "#b45309"
+  },
+  "flowchart": {
+    "htmlLabels": true,
+    "curve": "basis",
+    "padding": 24,
+    "nodeSpacing": 55,
+    "rankSpacing": 70,
+    "diagramPadding": 16,
+    "useMaxWidth": false,
+    "wrappingWidth": 280
+  },
+  "sequence": {
+    "useMaxWidth": false,
+    "mirrorActors": false,
+    "messageMargin": 40,
+    "boxMargin": 12,
+    "noteMargin": 12
+  },
+  "state": {
+    "useMaxWidth": false,
+    "padding": 20
+  },
+  "gantt": {
+    "useMaxWidth": false
+  },
+  "journey": {
+    "useMaxWidth": false
+  },
+  "timeline": {
+    "useMaxWidth": false
+  }
+}

@@ -1,6 +1,6 @@
 # Toxiproxy no kind
 
-Manifests da **Onda 1**. Laboratório completo: [`labs/lab-01-toxiproxy-resiliencia.md`](../../labs/lab-01-toxiproxy-resiliencia.md).
+Manifests do **Módulo 1** (resiliência). Laboratório: [`labs/lab-01-toxiproxy-resiliencia.md`](../../labs/lab-01-toxiproxy-resiliencia.md).
 
 ```bash
 kubectl apply -f deploy/toxiproxy/deployment.yaml

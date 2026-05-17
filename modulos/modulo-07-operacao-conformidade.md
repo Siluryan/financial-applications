@@ -8,7 +8,7 @@ No *kind*, “funcionou” basta. Em produção e auditoria entram: senha fora d
 
 O cenário que **funciona** precisa **se defender** quando alguém erra, credencial vaza ou deploy quebra consumidor silenciosamente.
 
-Trate este bloco como duas a quatro semanas **depois** de consolidar as ondas anteriores — reforço transversal, não atalho.
+Trate este bloco como duas a quatro semanas **depois** de consolidar os módulos 1–6 no cluster — reforço transversal, não atalho.
 
 ## 7.1 Segredos e rotação
 
@@ -35,6 +35,8 @@ Pense no correio entre salas:
 | **Exactly-once** | Efeito de negócio uma vez só — na prática combina transação local + idempotência, não um botão mágico do broker |
 
 **Outbox** (lab 07b): na mesma transação do Postgres você grava o *Pix* **e** uma linha “carta a enviar”; um **relay** (carteiro separado) publica no Kafka. Se o *Pix* foi gravado, a carta não se perde — mesmo que o HTTP já tenha respondido ao cliente.
+
+No monorepo: `pix_service.py` grava `PixTransfer` + `OutboxEvent`; `apps/worker-outbox-relay/` publica com `FOR UPDATE SKIP LOCKED` e span `outbox.publish`. Ative com `DATABASE_URL` + `PIX_USE_OUTBOX=true` (evite `PIX_SYNC_KAFKA=true` no fluxo principal).
 
 **DLQ** (*dead letter queue*) é a gaveta de “cartas com endereço inválido”: depois de N tentativas, a mensagem sai da fila principal para não travar o resto nem esconder o erro num loop infinito.
 

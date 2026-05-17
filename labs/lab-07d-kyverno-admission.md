@@ -4,23 +4,25 @@
 
 ## Objetivo
 
-Bloquear Deployments inseguros (sem `resources.limits`, tag `:latest`) antes de entrarem no cluster.
+Impedir que Deployments inseguros entrem no cluster — sem `resources.limits`, com imagem `:latest` — usando **Kyverno** como admission controller.
 
-Sem admission policy, qualquer YAML perigoso vira pod rodando — como deixar qualquer pessoa ligar um forno sem checar extintor. **Kyverno** avalia o manifest na hora do `kubectl apply` e **nega** com mensagem clara; isso vira evidência de auditoria (“o cluster recusou deploy sem limite de memória”).
+Sem política na admissão, YAML perigoso vira Pod em produção. Kyverno avalia o manifest no `kubectl apply` e **nega** com mensagem auditável — defesa em profundidade antes do runtime.
+
+**Tempo estimado:** 60–75 min.
 
 ## Antes de começar
 
 ### Conhecimento (este lab)
 
-- **Admission controller** avalia YAML **antes** do pod existir ([Módulo 7](../modulos/modulo-07-operacao-conformidade.md)).
+- Admission controller ([Módulo 7](../modulos/modulo-07-operacao-conformidade.md)).
 
 ### Labs anteriores
 
-- [Lab 00](lab-00-kind-banco-minimo.md) — namespace `core-banking` e Deployments base.
+- [Lab 00](lab-00-kind-banco-minimo.md) — namespace `core-banking`.
 
 ### Ambiente
 
-- *kind* no ar; **Helm 3**; Kyverno instalado nos passos abaixo.
+- *kind* + Helm 3.
 
 ## Passos
 
@@ -29,6 +31,7 @@ Sem admission policy, qualquer YAML perigoso vira pod rodando — como deixar qu
 ```bash
 helm repo add kyverno https://kyverno.github.io/kyverno/
 helm install kyverno kyverno/kyverno -n kyverno --create-namespace
+kubectl -n kyverno wait --for=condition=available deployment/kyverno-admission-controller --timeout=120s
 ```
 
 ### 2. Política — limits obrigatórios
@@ -70,21 +73,32 @@ kubectl apply -f deploy/policies/kyverno/
 
 ### 3. Manifest “ruim”
 
-Tente aplicar Deployment sem `limits` — deve ser **negado** com mensagem clara.
+Aplique Deployment de teste **sem** `resources.limits` no namespace `core-banking`.
 
-### 4. Política — proibir :latest
+**Esperado:** erro de policy com mensagem clara — não `Running`.
 
-Segunda `ClusterPolicy` negando imagens `*:latest` em `core-banking`.
+Guarde o output como evidência no relatório do lab.
+
+### 4. Política — proibir `:latest`
+
+Segunda `ClusterPolicy` negando imagens `*:latest` em `core-banking`. Teste com imagem `nginx:latest` — deve falhar.
 
 ### 5. Corrigir manifests do lab
 
-Ajuste `deploy/k8s/base/*.yaml` se alguma política falhar (já há limits nos serviços base).
+Ajuste `deploy/k8s/base/*.yaml` se alguma política falhar nos serviços base. O objectivo é que `kubectl apply -k deploy/k8s` passe **com** políticas activas.
 
 ## Deu certo quando
 
-- [ ] `kubectl apply` de manifest ruim retorna erro de policy.
-- [ ] Manifest corrigido é aceito.
-- [ ] Pelo menos **duas** políticas ativas (limits + latest).
+- [ ] `kubectl apply` de manifest ruim é negado.
+- [ ] Manifest corrigido é aceite.
+- [ ] Pelo menos duas políticas activas (limits + latest).
+
+## Troubleshooting
+
+| Sintoma | Ação |
+|---------|------|
+| Policy não aplica | `kubectl get clusterpolicy`; webhook Kyverno |
+| Falso positivo | Ajustar pattern; excluir namespace de sistema |
 
 ## Próximo passo
 

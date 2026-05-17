@@ -4,24 +4,26 @@
 
 ## Objetivo
 
-Garantir que mudanças em *Limites* não quebram o *Pix* com **Pact** no CI.
+Garantir que alterações na API de *Limites* não quebram o *Pix* sem deploy integrado, usando **Pact**: o consumidor define expectativas; o provedor verifica-as no CI.
 
-O *Pix* é **consumidor** (quem chama a API); *Limites* é **provedor**. O teste do consumidor grava um arquivo “combinado” com URL, status e corpo esperados. No pipeline do provedor, o Pact sobe um mock e verifica se a implementação real ainda honra o combinado — como ensaiar a peça de teatro antes da estreia, sem montar o teatro inteiro.
+Integração só em ambiente partilhado descobre incompatibilidades tarde. Contrato versionado é o acordo formal: URL, status HTTP, forma do JSON. O *Pix* é **consumidor**; *Limites* é **provedor**.
+
+**Tempo estimado:** 60–90 min.
 
 ## Antes de começar
 
 ### Conhecimento (este lab)
 
-- *Pix* = **consumidor** da API de *Limites*; contrato descreve JSON esperado ([Módulo 7](../modulos/modulo-07-operacao-conformidade.md)).
+- Contrato HTTP consumidor/provedor ([Módulo 7](../modulos/modulo-07-operacao-conformidade.md)).
 
 ### Labs anteriores
 
-- [Lab 00](lab-00-kind-banco-minimo.md) — serviços sobem (teste manual da API).
+- [Lab 00](lab-00-kind-banco-minimo.md) — conhecer `GET /v1/limits/{account_id}` manualmente.
 
 ### Ambiente
 
-- **Python 3.11+**, `pip install pact-python pytest`.
-- Não exige cluster no ar para rodar teste de contrato no CI/local.
+- Python 3.11+, `pip install pact-python pytest`.
+- Cluster **não** obrigatório para testes locais.
 
 ## Passos
 
@@ -54,20 +56,21 @@ def test_get_limits():
          "currency": "BRL",
      }))
     with pact:
-        # chame seu cliente httpx contra MOCK_URL do pact
+        # Reutilize _fetch_limits_sync ou cliente fino com base_url = MOCK_URL do pact
         ...
 ```
 
-Gere o pact file (`pact.io write` conforme versão da lib).
+Execute `pytest -m contract` e gere o ficheiro pact em `tests/contract/pacts/`.
+
+**Importante:** não duplique path/URL no handler do *Pix* — reutilize a função de `resilience.py` apontando para o mock do Pact.
 
 ### 3. Verificação do provedor
 
-No repositório ou job CI, suba *Limites* e rode provider verification contra o JSON gerado.
+Suba *Limites* (Compose ou local) e execute provider verification contra o JSON gerado (`pact-verifier` conforme versão da biblioteca).
 
-### 4. CI (GitHub Actions esboço)
+### 4. CI com GitHub Actions
 
 ```yaml
-# .github/workflows/contract.yml
 jobs:
   contract:
     runs-on: ubuntu-latest
@@ -80,13 +83,22 @@ jobs:
 
 ### 5. Quebra intencional
 
-Altere o JSON de resposta de *Limites* sem atualizar o contrato — build deve falhar.
+Altere o JSON de *Limites* (remova `currency`) sem actualizar o contrato — o build deve **falhar**. Restaure e confirme verde.
+
+Documente política de equipa: “mudança de API = actualizar Pact antes do merge”.
 
 ## Deu certo quando
 
-- [ ] Contrato versionado em `apps/servico-pix/tests/contract/pacts/`.
-- [ ] CI falha quando provedor quebra campo obrigatório.
-- [ ] Time documenta política: “mudança de API = atualizar Pact primeiro”.
+- [ ] Contrato em `apps/servico-pix/tests/contract/pacts/`.
+- [ ] CI (ou comando local) falha quando provedor quebra campo obrigatório.
+- [ ] Política escrita no README ou `docs/`.
+
+## Troubleshooting
+
+| Sintoma | Ação |
+|---------|------|
+| Mock URL errada | Variável `PACT_MOCK_HOST` / porta do pact |
+| Provider verify skipped | *Limites* não está a escutar na porta esperada |
 
 ## Próximo passo
 

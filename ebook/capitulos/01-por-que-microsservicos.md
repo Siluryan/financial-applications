@@ -24,7 +24,7 @@ Bancos digitais e fintechs competem em **tempo de lançamento** e **disponibilid
 | Integração com parceiros | APIs e eventos padronizados |
 | Múltiplos canais (app, internet, API) | Mesmo núcleo, fronteiras claras |
 
-O cenário deste livro — *Pix*, *Limites*, *Crédito* — é didático, mas espelha um padrão real: **caminho síncrono crítico** (aprovar na hora) e **caminho assíncrono** (notificar, antifraude, analytics) desacoplados por fila.
+O cenário deste livro — *Pix*, *Limites*, *Crédito* — é fictício, porém típico de bancos digitais: **caminho síncrono** (aprovar na hora) e **caminho assíncrono** (notificar, antifraude, analytics) desacoplados por fila.
 
 ## CAP, PACELC e dinheiro
 

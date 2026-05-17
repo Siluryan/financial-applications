@@ -4,94 +4,108 @@
 
 ## Objetivo
 
-Substituir `publish` direto na thread HTTP por **outbox** na mesma transação Postgres e um **relay** que publica no Kafka.
+Garantir que eventos `pix.iniciado` são gravados na **mesma transação** PostgreSQL que a transferência, e publicados no Kafka por um **relay** assíncrono — sem `producer.send` na thread HTTP.
+
+Publicar Kafka directo no handler HTTP arrisca: DB commitou e mensagem não saiu (ou o contrário). O **transactional outbox** torna o evento uma linha SQL; o relay lê linhas pendentes e publica — at-least-once com idempotência no consumer.
+
+**Tempo estimado:** 90–120 min.
 
 ## Antes de começar
 
 ### Conhecimento (este lab)
 
-- **Outbox** = gravar evento na mesma transação SQL do *Pix*; relay publica no Kafka ([Módulo 7](../modulos/modulo-07-operacao-conformidade.md)).
+- Padrão outbox ([Módulo 7](../modulos/modulo-07-operacao-conformidade.md), [Fundamentos — Kafka](../ebook/capitulos/fundamentos-kafka.md)).
 
 ### Labs anteriores
 
-- [Lab 04](lab-04-redis-postgres-idempotencia.md) — Postgres no fluxo do *Pix*.
-- [Lab 02b](lab-02b-kafka-consumer.md) — broker e tópico `pix.iniciado`.
+- [Lab 04](lab-04-redis-postgres-idempotencia.md) — Postgres no *Pix*.
+- [Lab 02b](lab-02b-kafka-consumer.md) — broker e tópico.
 
 ### Ambiente
 
 - Compose com Postgres + Kafka **ou** equivalente no *kind*.
-- `worker-outbox-relay` no repo (`apps/worker-outbox-relay/`).
+- `apps/worker-outbox-relay/` no repositório.
 
 ## Passos
 
-### 1. Tabela outbox
+### 1. Onde está o código
+
+| Peça | Arquivo | Papel |
+|------|---------|--------|
+| `OutboxEvent` | `apps/servico-pix/app/models.py` | Linha pendente de publicação |
+| Gravação | `apps/servico-pix/app/pix_service.py` | `session.begin()`: transferência + outbox + idempotência |
+| Modo outbox | `PIX_USE_OUTBOX=true` + `DATABASE_URL` | Padrão com Postgres |
+| Legado | `PIX_SYNC_KAFKA=true` | Publish HTTP — só para comparar |
+| Relay | `apps/worker-outbox-relay/app/main.py` | `FOR UPDATE SKIP LOCKED`, span `outbox.publish` |
+
+Consulta SQL:
 
 ```sql
-CREATE TABLE outbox (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  aggregate_id TEXT NOT NULL,
-  event_type TEXT NOT NULL,
-  payload JSONB NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  published_at TIMESTAMPTZ
-);
-CREATE INDEX idx_outbox_pending ON outbox (created_at) WHERE published_at IS NULL;
+SELECT id, aggregate_id, event_type, published_at IS NULL AS pending
+FROM outbox ORDER BY created_at DESC LIMIT 5;
 ```
 
-### 2. Mesma transação do negócio
+### 2. Subir Compose com outbox
 
-No handler do *Pix* (SQLAlchemy):
-
-```python
-async with session.begin():
-    # débito / registro pix
-    session.add(Outbox(...))
-# commit único
+```bash
+docker compose up --build -d
 ```
 
-Remova (ou desative) publish **síncrono** ao broker (`aiokafka`) no caminho da requisição HTTP.
+Verifique no `docker-compose.yml`: *Pix* com `DATABASE_URL`, `PIX_USE_OUTBOX=true`; serviço `worker-outbox-relay` com `KAFKA_BOOTSTRAP_SERVERS`.
 
-### 3. Relay worker
+```bash
+curl -sS -X POST http://127.0.0.1:8000/v1/pix \
+  -H 'Content-Type: application/json' \
+  -H 'Idempotency-Key: lab-07b-001' \
+  -d '{"account_id":"acc_demo","amount":10,"destination":"acc_dest_1"}' | jq .
+```
 
-Processo separado (`apps/worker-outbox-relay/`):
+**Esperado:** `"kafka": "outbox_pending"`. Em segundos, o relay publica — confirme no console consumer (lab 02b).
 
-1. `SELECT ... FROM outbox WHERE published_at IS NULL LIMIT 100 FOR UPDATE SKIP LOCKED`
-2. Publicar no Kafka
-3. `UPDATE outbox SET published_at = now()`
+### 3. Validar mesma transação
+
+Revise `pix_service.py`: `OutboxEvent` dentro do mesmo `session.begin()` que `PixTransfer`. Em `main.py`, o producer Kafka só activa com `PIX_SYNC_KAFKA=true` — desligado no fluxo outbox.
 
 ### 4. Teste de crash
 
-1. Pare o relay após commit no DB.
-2. Confirme linhas pendentes em `outbox`.
-3. Suba o relay — mensagens aparecem no tópico sem duplicar negócio (dedup no consumer).
+1. `docker compose stop worker-outbox-relay` (ou escale a zero).
+2. Envie *Pix* aprovado — linha na outbox com `published_at` NULL.
+3. Suba o relay — mensagens no tópico **sem** duplicar transferência (uma linha de negócio por chave idempotente).
 
-### 5. Integrar “*Pix* perdido”
+### 5. Trace contínuo
 
-Com [Lab 02 — Jaeger](lab-02-opentelemetry-jaeger.md), o trace deve incluir span `outbox.publish` no worker.
+Com [Lab 02](lab-02-opentelemetry-jaeger.md), o trace deve incluir span `outbox.publish` no worker, ligado ao HTTP do *Pix* se propagação estiver configurada.
 
-### 6. DLQ — poison pill (avançado)
+### 6. DLQ — poison pill
 
-1. Crie tópico `pix.iniciado.dlq`.
-2. No consumer, após **3** falhas de processamento da mesma mensagem (contador em memória ou Redis), publique cópia na DLQ com headers: `original_offset`, `error`, `trace_id`.
-3. **Commit** offset da mensagem original para não travar a partição (documente o trade-off: perda vs bloqueio).
-4. Alerta manual: log `level=ERROR event=poison_message_sent_to_dlq`.
+1. Tópico `pix.iniciado.dlq`.
+2. Após 3 falhas no consumer, publique cópia na DLQ com headers `original_offset`, `error`, `trace_id`.
+3. Commit offset da mensagem original — descreva o trade-off (desbloquear partição vs perda de reprocessamento).
 
-Relacionado: exercício A6 do [Lab 02b](lab-02b-kafka-consumer.md).
+O exercício **A6** do [Lab 02b](lab-02b-kafka-consumer.md) aborda consumo e *lag* em cenário semelhante.
 
-### 7. Exactly-once — o que o lab realmente garante
+### 7. Exactly-once — o que o lab garante
 
 Escreva em 5 linhas:
 
-- O que **transação Postgres + outbox** garante.
-- O que **Kafka transactional producer** garantiria (sem implementar, se preferir).
+- O que **transação + outbox** garante.
+- O que **Kafka transactional producer** garantiria (sem implementar).
 - Por que o consumer ainda precisa **idempotência**.
 
 ## Deu certo quando
 
 - [ ] Nenhum evento perdido após crash simulado do relay.
-- [ ] Consumer idempotente não aplica efeito duplicado.
-- [ ] Fluxo documentado no diagrama [m04-outbox](../modulos/diagramas/m04-outbox.png).
-- [ ] (Avançado) Mensagem poison enviada à DLQ após N tentativas.
+- [ ] Consumer idempotente não duplica efeito.
+- [ ] Fluxo alinhado ao diagrama [m04-outbox](../modulos/diagramas/m04-outbox.png).
+- [ ] Mensagem poison enviada à DLQ após N tentativas.
+
+## Troubleshooting
+
+| Sintoma | Ação |
+|---------|------|
+| `outbox_pending` eterno | Relay parado; logs do worker |
+| Mensagens duplicadas no tópico | At-least-once normal — consumer deduplica |
+| HTTP chama Kafka directo | `PIX_SYNC_KAFKA` activo por engano |
 
 ## Próximo passo
 

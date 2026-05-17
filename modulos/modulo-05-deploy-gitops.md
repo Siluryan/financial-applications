@@ -63,7 +63,7 @@ Benefícios: auditoria por histórico Git, rollback = revert, mesmo fluxo em amb
 
 ### GitOps leve no lab
 
-Sem Argo, `kubectl apply -k deploy/k8s` a partir do monorepo já ensina reprodutibilidade (**Onda 6**). Argo é o passo seguinte quando você quer UI e detecção contínua de drift.
+Sem Argo, `kubectl apply -k deploy/k8s` a partir do monorepo já ensina reprodutibilidade declarativa. Argo é o passo seguinte quando você quer UI e detecção contínua de drift (laboratório do Módulo 5).
 
 ## Kubernetes em produção (além do lab)
 

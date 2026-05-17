@@ -1,4 +1,4 @@
-Consulte esta tabela ao longo da leitura. Definições completas e analogias: [Glossário](GLOSSARIO.md) (final do livro).
+Use esta tabela quando surgir uma sigla no texto. Definições mais longas, com analogias e remissão aos capítulos, estão no [Glossário](GLOSSARIO.md), no final do livro.
 
 ## Siglas e termos curtos
 
@@ -46,7 +46,9 @@ Consulte esta tabela ao longo da leitura. Definições completas e analogias: [G
 |-------|----------------|
 | **at-least-once** | Mensagem pode chegar mais de uma vez — exige idempotência |
 | **canary** | Fração pequena do tráfego na versão nova antes de promover |
-| **circuit breaker** | Para de insistir em dependência doente (disjuntor) |
+| **circuit breaker** | Para de insistir em dependência doente (disjuntor); no lab: **pybreaker** em `resilience.py` |
+| **pybreaker** | Circuit breaker Python — `limites_breaker.call(função_httpx, …)` |
+| **Tenacity** | Retry com backoff + jitter — decorator em `_fetch_limits_sync` |
 | **consumer lag** | Mensagens na fila ainda não processadas pelo grupo |
 | **consumer group** | Conjunto de consumidores Kafka que divide o trabalho |
 | **drift** | Cluster diferente do que está no Git |

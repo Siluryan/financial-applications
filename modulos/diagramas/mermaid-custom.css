@@ -1,0 +1,38 @@
+/* Estilo editorial — diagramas do livro (render via mermaid-cli) */
+
+#container,
+#graph-div,
+svg {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+}
+
+.node rect,
+.node circle,
+.node ellipse,
+.node polygon,
+.node path {
+  stroke-width: 1.5px !important;
+}
+
+.edgePath path,
+.flowchart-link {
+  stroke-width: 1.5px !important;
+}
+
+.cluster rect {
+  rx: 6px !important;
+  ry: 6px !important;
+}
+
+.label,
+.nodeLabel,
+.edgeLabel {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+
+.sectionTitle,
+.titleText {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+}

@@ -7,7 +7,9 @@
 
 ## Como o livro está organizado
 
-Cada **módulo** segue a sequência:
+No **sumário**, cada **módulo** (0 a 7) é uma parte. Dentro de cada um, as secções *Contexto*, *Teoria* e *Fundamentos* (quando existirem) precedem o **laboratório** — com título explícito (*Laboratório 01 — …*, *Laboratório 02b — …*, etc.). O Módulo 7 reúne sete laboratórios (07a–07g), todos listados no sumário.
+
+Cada módulo segue a sequência:
 
 1. **Contexto histórico** — por que a ferramenta existe; incidentes reais quando aplicável  
 2. **Teoria** — capítulo conceitual do módulo  
@@ -17,8 +19,7 @@ Não leia todos os contextos de uma vez no início; leia o contexto **da parte**
 
 | Parte | Contexto (capítulos) |
 |-------|----------------------|
-| Módulo 0 | Microsserviços e bancos |
-| Onda 0 | Kubernetes / containers |
+| Módulo 0 | Microsserviços, fundamentos HTTP/K8s e Lab 00 |
 | Módulo 1 | Incidentes de resiliência |
 | Módulo 2 | Observabilidade + Kafka |
 | Módulo 3 | Service mesh |
@@ -32,7 +33,7 @@ Não leia todos os contextos de uma vez no início; leia o contexto **da parte**
 | Semana | Parte | Foco |
 |--------|-------|------|
 | 1 | Módulo 0 + contexto | CAP, idempotência |
-| 2 | Onda 0 + contexto K8s | Cluster mínimo |
+| 2 | Módulo 0 (completo) | Cluster mínimo (Lab 00) |
 | 3 | Módulo 1 | Resiliência |
 | 4 | Módulo 2 | Traces e Kafka |
 | 5 | Módulo 4 | Idempotência (pode adiantar após 2) |
@@ -42,13 +43,13 @@ Não leia todos os contextos de uma vez no início; leia o contexto **da parte**
 | 9–12 | Módulo 7 | Labs 07a–07f |
 | 13+ | Exercícios de falha | Integração |
 
-Checklists expandidos: repositório Git do projeto.
+Tabelas de verificação expandidas: repositório *financial-applications* no GitHub.
 
 ## Conhecimento, lab e ambiente
 
 | Tipo | Onde ler |
 |------|----------|
-| **Conhecimento do curso** (HTTP, Docker, K8s…) | [Pré-requisitos](../PRE-REQUISITOS.md) — **uma vez** no início |
+| **Conhecimento** (HTTP, Docker, K8s…) | Blocos *Fundamentos* de cada parte + [índice](fundamentos-indice.md) |
 | **Cada laboratório** | Seção *Antes de começar* (conhecimento **deste** lab + labs anteriores + ambiente) |
 
 | RAM (ambiente) | Sugestão |
@@ -65,4 +66,4 @@ Checklists expandidos: repositório Git do projeto.
 | Termo com analogia | [Glossário](../GLOSSARIO.md) (final) |
 | Checklist detalhado | Repositório Git (online) |
 
-Comece: [Módulo 0](../../modulos/modulo-00-fundamentos-distribuidos.md) após [por que microsserviços](01-por-que-microsservicos.md).
+**Ordem sugerida na primeira leitura:** capítulo *Por que microsserviços* (contexto do Módulo 0), depois o **Módulo 0** por completo — teoria, fundamentos de HTTP/Kubernetes e Laboratório 00 — e então os Módulos 1 a 7 na sequência do sumário.

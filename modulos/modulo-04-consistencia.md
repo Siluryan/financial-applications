@@ -89,13 +89,16 @@ Implementações comuns (não reduza idempotência só a Redis):
 | **Event store** | Histórico de eventos imutáveis (cada mudança é registro novo) |
 | **Kafka EOS** | *Exactly-once* no Kafka — exige produtor transacional + desenho cuidadoso |
 
-Fluxo típico com **Redis** no lab:
+Fluxo no **repositório** (`apps/servico-pix/app/idempotency.py`):
 
-1. `SET idempotency:<key> PROCESSING NX EX 86400`
-2. Se a chave foi criada → processar negócio, gravar resultado final na chave
-3. Se a chave já existe → devolver resposta armazenada (ou aguardar estado terminal)
+| Passo | Onde |
+|-------|------|
+| Ler cache | `get_cached_response` — Redis `idempotency:{key}` e/ou linha em `idempotency_records` |
+| Processar | `process_pix` se não houver cache |
+| Persistir | `store_response` — Redis com TTL 86400 s + `IdempotencyRecord` (PK na chave) |
+| Replay HTTP | `main.py` devolve corpo anterior com `idempotent_replay: true` |
 
-O *Pix* do repositório já ecoa o header; neste módulo você **persiste** o comportamento. Em APIs de pagamento, idempotência não é opcional — é proteção contra retry de cliente, timeout de rede e duplo clique.
+Padrão alternativo com `SET idempotency:<key> PROCESSING NX` (estado intermediário) é comum em outros bancos; aqui a resposta final gravada **é** o contrato de idempotência. Em APIs de pagamento isso não é opcional — protege retry de cliente, timeout e duplo clique.
 
 ## Idempotência com Kafka
 

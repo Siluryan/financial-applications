@@ -22,7 +22,7 @@ Antes de aprovar uma transferência, o *servico-pix* consulta o *servico-limites
 
 ![Fluxo com Toxiproxy opcional](diagramas/m01-fluxo-toxiproxy.png)
 
-Na **Onda 1** da espinha dorsal, um *Toxiproxy* entra entre os dois serviços. Você controla latência, timeout e perda de pacotes como um engenheiro de plataforma, enquanto o time de aplicação ajusta Tenacity e circuit breaker no *Pix*.
+No **laboratório deste módulo**, um *Toxiproxy* entra entre os dois serviços. Você controla latência, timeout e perda de pacotes como engenheiro de plataforma, enquanto o time de aplicação ajusta Tenacity e circuit breaker no *Pix*.
 
 ## Timeout: o primeiro acordo com a realidade
 
@@ -72,7 +72,91 @@ Configure **limiar de erro** (ex.: 50 % de falhas em 10 s), **slow-call detectio
 
 ![Estados do circuit breaker](diagramas/m01-circuit-breaker.png)
 
-Em ambiente financeiro, registre mudanças de estado em **log JSON** (`circuit_breaker_state`, dependência, motivo). Alertas quando o circuito permanece aberto evitam que o time descubra o problema só pela fila de reclamações. **pybreaker** é uma biblioteca comum no ecossistema Python.
+Em ambiente financeiro, registre mudanças de estado em **log JSON** (`circuit_breaker_state`, dependência, motivo). Alertas quando o circuito permanece aberto evitam que o time descubra o problema só pela fila de reclamações.
+
+### pybreaker: o que é e onde fica no código
+
+**pybreaker** é a biblioteca Python que implementa o circuit breaker. Não substitui o **httpx**: envolve a função que já o utiliza. Convém concentrar a chamada HTTP numa função síncrona e passá-la a `limites_breaker.call(...)`.
+
+No repositório, a chamada a *servico-limites* **não** fica espalhada em `pix_service.py`. Fica centralizada em `apps/servico-pix/app/resilience.py`, em três camadas:
+
+| Camada | Responsabilidade | Arquivo / símbolo |
+|--------|------------------|-------------------|
+| Negócio | Só pede limites e trata `CircuitBreakerError` | `pix_service.py` → `fetch_limits()` |
+| Orquestração | Roda o breaker em thread (FastAPI async) | `resilience.py` → `fetch_limits()` |
+| Rede + políticas | httpx + Tenacity + pybreaker | `resilience.py` → `_fetch_limits_sync`, `limites_breaker` |
+
+Fluxo de uma requisição `POST /v1/pix`:
+
+```text
+Cliente → process_pix (async)
+            → await fetch_limits(account_id)
+                 → asyncio.to_thread(limites_breaker.call, _fetch_limits_sync, …)
+                      → [breaker closed] Tenacity retenta se 502/503/504 ou timeout
+                      → httpx GET {LIMITES_URL}/v1/limits/{account_id}
+                      → [breaker open] CircuitBreakerError imediato (sem HTTP)
+            → aprova/rejeita Pix conforme daily_remaining ou reason limites_unavailable
+```
+
+**Por que três arquivos e não um decorator no `pix_service`?**
+
+- **Separação:** política de resiliência (timeout, retry, breaker) muda por dependência; o domínio *Pix* só precisa de `lim = await fetch_limits(...)`.
+- **Ordem correta:** o **Tenacity** fica **dentro** da função passada ao `limites_breaker.call(...)`. Assim, falhas transitórias são retentadas antes de contar como falha definitiva do breaker (com `reraise=True`).
+- **pybreaker é síncrono:** o `CircuitBreaker.call` bloqueia a thread. Por isso `fetch_limits` usa `asyncio.to_thread` — o event loop do FastAPI não fica preso esperando *Limites*.
+
+Trecho de referência (simplificado do repositório):
+
+```python
+# apps/servico-pix/app/resilience.py
+limites_breaker = pybreaker.CircuitBreaker(
+    fail_max=5,           # BREAKER_FAIL_MAX
+    reset_timeout=30,     # BREAKER_RESET_TIMEOUT (segundos)
+    name="servico-limites",
+)
+
+@retry(..., retry=retry_if_exception(_transient), reraise=True)
+def _fetch_limits_sync(account_id: str) -> dict:
+    with httpx.Client(base_url=LIMITES_URL, timeout=httpx.Timeout(HTTP_TIMEOUT)) as client:
+        response = client.get(f"/v1/limits/{account_id}")
+        response.raise_for_status()
+        return response.json()
+
+def fetch_limits_resilient(account_id: str) -> dict:
+    return limites_breaker.call(_fetch_limits_sync, account_id)
+
+async def fetch_limits(account_id: str) -> dict:
+    return await asyncio.to_thread(fetch_limits_resilient, account_id)
+```
+
+Em `pix_service.py`, o negócio trata o circuito **aberto** sem tentar HTTP de novo:
+
+```python
+try:
+    lim = await fetch_limits(body.account_id)
+except pybreaker.CircuitBreakerError:
+    return {"status": "rejected", "reason": "limites_unavailable", "circuit_breaker": "open"}
+```
+
+Variáveis de ambiente no *Pix* (ver também [`apps/README.md`](../apps/README.md)):
+
+| Variável | Padrão | Efeito |
+|----------|--------|--------|
+| `LIMITES_URL` | `http://127.0.0.1:8001` | Base do httpx (`/v1/limits/{account_id}`) |
+| `HTTP_TIMEOUT` | `2.0` | Timeout de conexão/leitura |
+| `RETRY_MAX_ATTEMPTS` | `3` | Tentativas Tenacity em falha transitória |
+| `BREAKER_FAIL_MAX` | `5` | Falhas consecutivas para abrir o circuito |
+| `BREAKER_RESET_TIMEOUT` | `30` | Segundos em **open** antes de testar **half-open** |
+
+O listener `_BreakerLogListener` grava transições `closed → open → half-open` em log estruturado (`circuit_breaker_state dependency=servico-limites`), alinhado ao que você busca no Grafana/Loki no lab de observabilidade.
+
+**Erros comuns ao integrar:**
+
+| Anti-pattern | Por quê evitar |
+|--------------|----------------|
+| `@retry` no `pix_service` **e** no `resilience.py` | Retry duplicado; contadores do breaker ficam confusos |
+| `limites_breaker.call` em cima só do `httpx.Client` sem função | O breaker precisa envolver a **operação inteira** (GET + `raise_for_status` + JSON) |
+| Breaker **fora** do retry, com retry “em volta” do breaker | Cada tentativa pode contar como falha e abrir o circuito cedo demais |
+| `AsyncClient` + `call` direto no handler async sem `to_thread` | pybreaker síncrono bloqueia o event loop |
 
 ### Fail-fast
 
@@ -90,10 +174,13 @@ Em ambiente financeiro, registre mudanças de estado em **log JSON** (`circuit_b
 
 ## O que você implementa neste módulo
 
-1. Cliente **httpx** com timeout explícito e mensagens de erro compreensíveis ao chamador.
-2. **Tenacity** com backoff exponencial e jitter em operações seguras para retry.
-3. **pybreaker** em torno da chamada a *Limites*, com logs estruturados nas transições de estado.
-4. Experimento comparativo: retry sem jitter versus com jitter; compare **p95/p99** (latência que 95 % ou 99 % dos clientes experimentam — não só a média) com `hey` ou Locust.
+No repositório, a entrega já está em `apps/servico-pix/app/resilience.py` + tratamento em `pix_service.py`. No lab, você **valida** e **ajusta** parâmetros — não precisa reinventar a estrutura:
+
+1. **httpx** com `HTTP_TIMEOUT` explícito em `_fetch_limits_sync` (dentro do breaker).
+2. **Tenacity** com `wait_exponential_jitter` só em falhas transitórias (`502`/`503`/`504`, timeout, rede).
+3. **pybreaker** via `limites_breaker.call(_fetch_limits_sync, account_id)` e listener de mudança de estado.
+4. **`pix_service`:** `await fetch_limits(...)` e `except CircuitBreakerError` → `limites_unavailable`.
+5. Experimento comparativo: retry sem jitter versus com jitter; compare **p95/p99** com `hey` ou Locust e observe logs `circuit_breaker_state` com *Toxiproxy*.
 
 ## Trade-offs
 

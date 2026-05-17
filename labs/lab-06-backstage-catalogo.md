@@ -1,26 +1,29 @@
 # Lab 06 — Backstage e catálogo de software
 
-[← Índice dos labs](README.md) · **Onda 7** · [Módulo 6](../modulos/modulo-06-backstage.md) · [`PLANO` — catálogo](../PLANO_DE_ESTUDO.md#modulo-6)
+[← Índice dos labs](README.md) · [Módulo 6](../modulos/modulo-06-backstage.md)
 
 ## Objetivo
 
-Registrar o sistema de laboratório no **Software Catalog** do Backstage usando os YAML já presentes no repositório.
+Registar o sistema de laboratório no **Software Catalog** do Backstage a partir dos YAML versionados no repositório, ligar documentação (TechDocs) e definir um template de serviço.
+
+Bancos digitais com dezenas de serviços perdem o mapa “quem chama quem”. O catálogo não substitui observabilidade — é o **inventário** com dono, ciclo de vida e dependências declaradas. Este lab não exige cluster Kubernetes a correr.
+
+**Tempo estimado:** 60–90 min (mais tempo se instalar Backstage local pela primeira vez).
 
 ## Antes de começar
 
 ### Conhecimento (este lab)
 
-- **Software Catalog** = cadastro YAML de serviços ([Módulo 6](../modulos/modulo-06-backstage.md)).
-- Não precisa operar cluster — é catalogação e documentação.
+- **Software Catalog** = entidades YAML (`Component`, `System`, `API`) ([Módulo 6](../modulos/modulo-06-backstage.md)).
 
 ### Labs anteriores
 
-- Nenhum obrigatório (útil ter feito Lab 00 para conhecer nomes `servico-pix`, etc.).
+Nenhum obrigatório. O Lab 00 ajuda a reconhecer nomes `servico-pix`, `servico-limites`, `servico-credito`.
 
 ### Ambiente
 
-- Arquivos [`catalog-info.yaml`](../catalog-info.yaml) e [`catalog-entities.yaml`](../catalog-entities.yaml) no repo.
-- **Backstage** local ([demo](https://backstage.io/docs/getting-started/)) **ou** instância da empresa (Node 18+, Docker).
+- [`catalog-info.yaml`](../catalog-info.yaml) e [`catalog-entities.yaml`](../catalog-entities.yaml) no repo.
+- Backstage local ([getting started](https://backstage.io/docs/getting-started/)) ou instância corporativa (Node 18+, Docker).
 
 ## Passos
 
@@ -31,11 +34,17 @@ cat catalog-info.yaml
 cat catalog-entities.yaml
 ```
 
-Confirme `System`, `Component` (*Pix*, *Limites*, *Crédito*) e relações `dependsOn`.
+Identifique:
+
+- **System** — agrupamento do banco lab.
+- **Components** — *Pix*, *Limites*, *Crédito*.
+- **Relações** `dependsOn` — *Pix* depende de *Limites*?
+
+Anote inconsistências (nome no YAML vs pasta `apps/servico-pix`) para corrigir antes de importar.
 
 ### 2. Backstage local (Docker)
 
-Siga o [getting started](https://backstage.io/docs/getting-started/) oficial. No `app-config.yaml`, adicione a Location:
+Siga o [getting started](https://backstage.io/docs/getting-started/) oficial. No `app-config.yaml` da instância, adicione Location apontando ao clone deste repositório:
 
 ```yaml
 catalog:
@@ -44,28 +53,42 @@ catalog:
       target: ../../catalog-info.yaml
 ```
 
-*(Ajuste o caminho para o clone deste repositório.)*
+Ajuste o caminho relativo à raiz do app Backstage.
+
+Reinicie o Backstage e abra a UI (porta 3000 por defeito).
 
 ### 3. Importar via UI
 
-Em **Create** → **Register existing component** → informe URL do Git ou caminho file da Location.
+**Create** → **Register existing component** → URL do Git ou caminho file da Location.
 
-### 4. TechDocs (opcional)
+Após processamento, abra o componente `servico-pix` e verifique abas Overview, dependências e links.
+
+### 4. TechDocs
 
 1. Crie `mkdocs.yml` na raiz apontando para `modulos/` e `PLANO_DE_ESTUDO.md`.
 2. Habilite plugin TechDocs no Backstage.
-3. Verifique aba **Docs** no componente `servico-pix`.
+3. Na ficha do componente, abra **Docs** e confirme renderização Markdown.
 
-### 5. Template (opcional)
+TechDocs aproxima código e documentação no mesmo lugar que o desenvolvedor já usa.
 
-Esboce um `template.yaml` que gere skeleton FastAPI + Dockerfile + `catalog-info.yaml` (não precisa publicar no GitHub real).
+### 5. Template de serviço
+
+Defina `template.yaml` que gera skeleton FastAPI + Dockerfile + `catalog-info.yaml` para novos serviços do laboratório.
 
 ## Deu certo quando
 
-- [ ] Componentes aparecem no catálogo com owner e lifecycle.
-- [ ] Grafo de dependências mostra *Pix* → *Limites*.
+- [ ] Componentes visíveis com `owner` e `lifecycle`.
+- [ ] Grafo mostra *Pix* → *Limites*.
 - [ ] Link para documentação (`modulos/` ou TechDocs) acessível a partir do componente.
+
+## Troubleshooting
+
+| Sintoma | Ação |
+|---------|------|
+| Location falha | Caminho file; permissões; YAML válido |
+| Componente duplicado | Remover Location antiga na UI |
+| TechDocs vazio | `mkdocs build` local para testar |
 
 ## Próximo passo
 
-Labs [07a–07f](README.md#ordem-sugerida) (operação e conformidade).
+Labs [07a–07g](README.md#ordem-sugerida) — operação e conformidade.

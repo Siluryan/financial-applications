@@ -2,7 +2,7 @@
 # Constrói as três imagens e carrega no nó do kind (tags :lab).
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-CLUSTER_NAME="${KIND_CLUSTER_NAME:-kind}"
+CLUSTER_NAME="${KIND_CLUSTER_NAME:-banco-lab}"
 
 build_one() {
   local name="$1"

@@ -14,11 +14,13 @@ Picos de tráfego com retries sincronizados pioram recuperação. Lição: **jit
 
 ### NetFlix (caos como cultura)
 
-**Chaos engineering** (*Chaos Monkey*, depois Simian Army) institucionalizou “quebrar de propósito” em horário controlado. Lição: *Toxiproxy* no lab 01 não é brincadeira — é ensaio de incêndio.
+**Chaos engineering** (*Chaos Monkey*, depois Simian Army) passou a injetar falhas em janelas controladas. Lição: o *Toxiproxy* do lab 01 reproduz esse ensaio em escala reduzida.
 
 ### Circuit breaker na prática
 
 Quando um antifraude ou scoring externo cai, bancos escolhem: **negar transação** (seguro) ou **modo degradado** com limite conservador (regra de negócio). O **circuit breaker** não decide política — implementa a decisão com *fail-fast*.
+
+No laboratório, *servico-pix* consulta *servico-limites* com **httpx** dentro de `app/resilience.py`: **Tenacity** retenta falhas transitórias; **pybreaker** abre o circuito após várias falhas e o *Pix* responde `limites_unavailable` sem nova chamada HTTP. A teoria detalhada (diagrama, variáveis, anti-patterns) está na seção [pybreaker do Módulo 1](../../modulos/modulo-01-resiliencia.md#pybreaker-o-que-é-e-onde-fica-no-código).
 
 ## Linha do tempo (padrões de resiliência)
 

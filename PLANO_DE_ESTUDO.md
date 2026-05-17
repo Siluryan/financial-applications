@@ -283,23 +283,21 @@ retry:
   jitter: 0.25             # variação aleatória ±25% no tempo de espera
 ```
 
-Exemplo mínimo em Python (retry com backoff exponencial e jitter) com **Tenacity** + **httpx**:
+Exemplo mínimo (mesma ideia do repositório em `apps/servico-pix/app/resilience.py` — **não** coloque retry/breaker no `pix_service.py`):
 
 ```python
-import httpx
-from tenacity import (
-    retry,
-    stop_after_attempt,
-    wait_exponential_jitter,
-)
+# resilience.py — Tenacity DENTRO da função que o pybreaker chama
+limites_breaker = pybreaker.CircuitBreaker(fail_max=5, reset_timeout=30)
 
-@retry(
-    stop=stop_after_attempt(4),
-    wait=wait_exponential_jitter(initial=0.1, exp_base=2, jitter=0.25),
-)
-def chamar_limites(url: str) -> httpx.Response:
-    with httpx.Client(timeout=0.5) as client:
-        return client.get(url)
+@retry(stop=stop_after_attempt(3), wait=wait_exponential_jitter(initial=0.1, max=2.0), reraise=True)
+def _fetch_limits_sync(account_id: str) -> dict:
+    with httpx.Client(base_url=LIMITES_URL, timeout=2.0) as client:
+        r = client.get(f"/v1/limits/{account_id}")
+        r.raise_for_status()
+        return r.json()
+
+def fetch_limits_resilient(account_id: str) -> dict:
+    return limites_breaker.call(_fetch_limits_sync, account_id)
 ```
 
 ### 1.2 Circuit breaker (disjuntor arquitetural)
@@ -330,9 +328,9 @@ toxiproxy-cli toxic add -t limit_data -a bytes=1000 servico_limites_proxy
 
 **Checklist do laboratório**
 
-- [ ] Implementar o cliente a limites em Python (`httpx.Client(timeout=0.5)` ou `AsyncClient`) e expor rota REST no *Pix* (FastAPI).
-- [ ] Envolver a chamada com **Tenacity** (`wait_exponential_jitter`) e circuit breaker (**pybreaker**); logar mudanças de estado do breaker em JSON.
-- [ ] Medir latência p95/p99 com e sem retry + jitter (ex.: script `locust` em Python ou `hey` contra o *Pix*).
+- [ ] Revisar `apps/servico-pix/app/resilience.py` (httpx + Tenacity + `limites_breaker.call`) e `pix_service.py` (`await fetch_limits`, `CircuitBreakerError` → `limites_unavailable`).
+- [ ] Ajustar `BREAKER_FAIL_MAX`, `HTTP_TIMEOUT`, `RETRY_MAX_ATTEMPTS` e validar logs `circuit_breaker_state` em JSON.
+- [ ] Medir latência p95/p99 com e sem retry + jitter (ex.: `hey` ou Locust contra o *Pix*).
 - [ ] Forçar falhas via *Toxiproxy* até abrir o circuito; validar resposta ao cliente e ausência de tempestade no downstream.
 - [ ] Documentar uma configuração “ruim” (retry imediato em loop sem jitter) e comparar com backoff + jitter.
 
@@ -575,12 +573,14 @@ Cliente com *R$ 100* dispara duas compras de *R$ 90* quase no mesmo instante. Du
 | *Lock otimista* | Coluna `version`; `UPDATE ... WHERE id = ? AND version = ?`; 0 linhas afetadas → conflito → retry/abort. | Baixa disputa de escrita, alta vazão. |
 | *Lock pessimista* | `SELECT ... FOR UPDATE` na transação até `COMMIT`. | Core financeiro com alta disputa e necessidade forte de invariantes. |
 
-### 4.2 Idempotência com Redis (fluxo típico)
+### 4.2 Idempotência com Redis (fluxo no repositório)
 
-1. Cliente envia cabeçalho *`Idempotency-Key`* (UUID) no clique.
-2. Serviço executa operação atômica, ex.: `SETNX idempotency:<key> PROCESSING EX 86400`.
-3. Se chave *não existia* → processar, gravar resultado final na mesma chave (ou registro associado), responder.
-4. Se chave *já existia* → não reprocessar; devolver resultado anterior ou aguardar estado terminal conforme política.
+1. Cliente envia cabeçalho *`Idempotency-Key`* no `POST /v1/pix`.
+2. `main.py` / `idempotency.py`: `get_cached_response` (Redis `idempotency:{key}` e/ou Postgres `idempotency_records`).
+3. Se já existe resposta → devolver com `idempotent_replay: true`.
+4. Se não existe → `process_pix`, gravar `IdempotencyRecord` + JSON no Redis (`store_response`); PK na chave evita duplicata em corrida (`IntegrityError`).
+
+Padrão alternativo `SETNX … PROCESSING` (ainda válido em outros sistemas) está descrito no [Módulo 4](../modulos/modulo-04-consistencia.md); o lab 04 valida o que já está em `apps/servico-pix/app/idempotency.py`.
 
 *Kafka (consumidor):* mensagens podem ser entregues *mais de uma vez* (*at-least-once*). O payload do *Pix* já inclui `idempotency_key` — o worker deve *deduplicar* (ex.: `SETNX` no Redis ou chave natural no Postgres) antes de aplicar efeito colateral.
 
@@ -600,9 +600,9 @@ Fluxo ilustrativo:
 
 *Checklist*
 
-- [ ] Script em Python (`asyncio` + **httpx** ou `concurrent.futures`) disparando débito concorrente no mesmo `account_id`; demonstrar furo *sem* lock adequado.
-- [ ] Corrigir com lock otimista (`version`) ou pessimista (`SELECT ... FOR UPDATE` via SQLAlchemy); medir throughput e conflitos.
-- [ ] Implementar idempotência com **Redis** (`SET key NX EX ...`) e repetir a mesma requisição HTTP com o mesmo cabeçalho `Idempotency-Key`.
+- [ ] Validar idempotência existente: mesmo `Idempotency-Key` → mesmo `transfer_id` ([lab 04](labs/lab-04-redis-postgres-idempotencia.md)).
+- [ ] Com `DATABASE_URL`, inspecionar `pix_transfers`, `idempotency_records` e `outbox` após um *Pix* aprovado.
+- [ ] (Extensão) Documentar ou implementar lock otimista/pessimista num débito local — o *Pix* do monorepo usa *Limites* HTTP, não tabela `accounts`.
 - [ ] Desenhar no papel (ou diagrama) uma saga de 3 passos com 2 compensações possíveis (orquestrador pode ser um módulo Python separado).
 
 ---
@@ -779,9 +779,10 @@ O time de plataforma precisa *auditar* o desenho: ninguém pode ler segredos em 
 
 *Laboratório (Python)*
 
-- [ ] Implementar tabela `outbox` (SQLAlchemy) + worker assíncrono (`asyncio` + *aiokafka* publicando no tópico Kafka, ou *redis* / *aio-pika* como etapa intermediária) que lê pendentes e publica.
-- [ ] Simular crash do worker *após* commit no DB e *antes* do publish; ao subir de novo, nenhuma mensagem “sumida” e nenhuma duplicata sem controle (use `message_id` + dedup no consumidor).
-- [ ] Integrar com a **Onda 2** da espinha dorsal: o fluxo “*Pix* perdido” do Módulo 2 deve passar por **outbox** em vez de `publish` direto na mesma requisição HTTP.
+- [ ] Validar `OutboxEvent` em `apps/servico-pix/app/models.py` + gravação em `pix_service.py` com `PIX_USE_OUTBOX=true`.
+- [ ] Rodar `worker-outbox-relay` e confirmar publicação no Kafka + span `outbox.publish` ([lab 07b](labs/lab-07b-outbox-kafka.md)).
+- [ ] Simular crash do relay após commit no DB; ao subir de novo, linhas `outbox` pendentes viram mensagens (dedup no consumidor).
+- [ ] Manter `PIX_SYNC_KAFKA=false` no fluxo principal — outbox em vez de publish na thread HTTP.
 
 ---
 
