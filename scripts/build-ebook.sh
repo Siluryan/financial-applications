@@ -508,7 +508,7 @@ current_secao=""
 content_in_part=false
 secao_heading_pending=false
 
-# Ponte no fim da seção anterior + página só com o título da seção seguinte.
+# Ponte no fim da seção anterior (sem página só com o título — o H2 da seção já abre o capítulo).
 emit_secao_transition() {
   local to_secao="$1"
   [[ "$to_secao" == "intro" || "$to_secao" == "apendice" ]] && return 0
@@ -525,12 +525,6 @@ emit_secao_transition() {
     echo '<div class="secao-ponte">'
     echo ""
     echo "A próxima seção desta parte do livro é **${display}**."
-    echo ""
-    echo '</div>'
-    echo ""
-    echo '<div class="secao-divisor">'
-    echo ""
-    echo "<p class=\"secao-divisor-title\">${display}</p>"
     echo ""
     echo '</div>'
     echo ""
