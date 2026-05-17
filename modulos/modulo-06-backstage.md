@@ -53,7 +53,7 @@ Assim o catálogo importa o grafo de componentes do monorepo de laboratório.
 
 O objetivo é reduzir **snowflake**: menos “cada time inventa um jeito de fazer Pix”. Mais conformidade por padrão.
 
-## Relação com a Onda 7 da espinha dorsal
+## Relação com o catálogo no cluster
 
 Registrar o sistema de laboratório no catálogo fecha a narrativa da plataforma: não basta subir pods no *kind*; é preciso **nomear**, **relacionar** e **documentar** o que foi construído. Opcionalmente, TechDocs aponta para este livro e para os laboratórios.
 

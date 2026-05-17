@@ -1,6 +1,6 @@
 # Apache Kafka no cluster (kind)
 
-Complemento à **Onda 2** da espinha dorsal no [`PLANO_DE_ESTUDO.md`](../../PLANO_DE_ESTUDO.md#estudo-kafka) (Kafka no **kind**; no laptop use o `docker-compose.yml` da raiz).
+Complemento ao **Módulo 2** / laboratório Kafka (broker no **kind**; no laptop use o `docker-compose.yml` da raiz). Roteiro completo no [`PLANO_DE_ESTUDO.md`](../../PLANO_DE_ESTUDO.md#estudo-kafka).
 
 Os manifests em [`deploy/k8s/`](../k8s/) **não** incluem Kafka por padrão (economia de RAM no laptop). Para estudar **Strimzi**, **Helm** ou operadores, suba o broker num namespace dedicado (ex.: `kafka`) e aponte o *servico-pix* com:
 

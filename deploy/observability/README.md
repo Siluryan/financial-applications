@@ -1,4 +1,4 @@
-# Observabilidade no cluster (Onda 3)
+# Observabilidade no cluster (Módulo 2)
 
 Stack alvo documentada no [Módulo 2](../../modulos/modulo-02-observabilidade.md):
 

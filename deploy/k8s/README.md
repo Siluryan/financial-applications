@@ -1,6 +1,6 @@
 # Kubernetes (Kustomize)
 
-Manifests alinhados à **Onda 0** da espinha dorsal do [`PLANO_DE_ESTUDO.md`](../../PLANO_DE_ESTUDO.md#ondas-principio) (*serviços* no namespace `core-banking`).
+Manifests do **Laboratório 00** (*serviços* no namespace `core-banking`). Ver [`PLANO_DE_ESTUDO.md`](../../PLANO_DE_ESTUDO.md#ondas-principio) para a sequência completa no repositório.
 
 Aplicar no cluster **após** carregar as imagens `*:lab` no kind (veja `scripts/build-load-kind.sh` e o [`README.md`](../../README.md) na raiz).
 

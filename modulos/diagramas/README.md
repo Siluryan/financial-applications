@@ -8,6 +8,20 @@ Os guias em [`modulos/`](../) embutem **imagens PNG** no Markdown (`![legenda](d
 |------------------|----------|
 | [`mmd/`](mmd/) | Fonte **Mermaid** (`.mmd`) — edite aqui |
 | `*.png` | Imagens geradas para os `.md` dos módulos |
+| `mermaid-config.json` | Tema editorial (cores, tipografia, espaçamento) |
+| `mermaid-custom.css` | Ajustes finos no SVG (traços, cantos, labels) |
+
+## Qualidade para impressão (KDP)
+
+Os PNG são gerados para **impressão a 300 DPI**:
+
+| Parâmetro | Predefinição | Efeito |
+|-----------|--------------|--------|
+| `MERMAID_WIDTH` | `2200` | Largura lógica do diagrama (px) |
+| `MERMAID_SCALE` | `2` | Escala Puppeteer (resolução efetiva ≈ largura × escala) |
+| `MERMAID_DPI` | `300` | Metadados DPI gravados no PNG (`scripts/embed-png-dpi.py`) |
+
+Exemplo: largura 2200 × escala 2 ≈ **4400 px** na imagem final — suficiente para figuras de ~14 cm a 300 DPI no PDF do livro.
 
 ## Regenerar PNG após editar um diagrama
 
@@ -15,7 +29,9 @@ Os guias em [`modulos/`](../) embutem **imagens PNG** no Markdown (`![legenda](d
 ./scripts/render-diagramas.sh
 ```
 
-Requer Node.js (`npx`). O script usa [@mermaid-js/mermaid-cli](https://github.com/mermaid-js/mermaid-cli).
+Requer **Pillow** (`python3-pil` ou `pip install Pillow`). Se `npx` não existir no sistema, o script instala Node portátil em `.tools/node` e o Mermaid CLI em `node_modules/` (ambos ignorados pelo Git).
+
+Diagramas muito altos (sequências longas): pode aumentar só esse ficheiro com altura explícita no `mmdc` ou ajustar `MERMAID_WIDTH` / `MERMAID_SCALE` antes do build.
 
 ## Índice de imagens
 

@@ -1,24 +1,24 @@
 # Laboratórios — passo a passo
 
-Guias **práticos** alinhados aos [módulos](../modulos/): em cada parte do [ebook](../ebook/README.md), a **teoria** (módulo) vem **antes** do lab correspondente.
+Guias **práticos** alinhados aos [módulos](../modulos/): em cada parte do [ebook](../ebook/README.md), a **teoria** (módulo) vem **antes** do lab correspondente. Cada lab inclui contexto, tempo estimado, diagramas quando útil, o que observar após comandos e troubleshooting expandido — não é só checklist de comandos.
 
 | Lab | Ferramenta / tema | Onda | Módulo | Estado no repo |
 |-----|-------------------|------|--------|----------------|
 | [00 — Banco mínimo no kind](lab-00-kind-banco-minimo.md) | kind, kubectl, Kustomize | **0** | — | `deploy/k8s` pronto |
-| [01 — Toxiproxy e resiliência](lab-01-toxiproxy-resiliencia.md) | *Toxiproxy*, Tenacity, pybreaker | **1** | [1](../modulos/modulo-01-resiliencia.md) | manifest em `deploy/toxiproxy/` |
-| [02 — OpenTelemetry + Jaeger](lab-02-opentelemetry-jaeger.md) | OTel, Jaeger, logs JSON | **3** | [2](../modulos/modulo-02-observabilidade.md) | você adiciona deps no Python |
+| [01 — Toxiproxy e resiliência](lab-01-toxiproxy-resiliencia.md) | *Toxiproxy*, Tenacity, pybreaker | **1** | [1](../modulos/modulo-01-resiliencia.md) | `resilience.py` + `deploy/toxiproxy/` |
+| [02 — OpenTelemetry + Jaeger](lab-02-opentelemetry-jaeger.md) | OTel, Jaeger, logs JSON | **3** | [2](../modulos/modulo-02-observabilidade.md) | `telemetry.py` — ativar `OTEL_*` |
 | [02b — Kafka consumer](lab-02b-kafka-consumer.md) | Kafka, *aiokafka*, lag | **2** | [2](../modulos/modulo-02-observabilidade.md) | Compose pronto; kind: [`deploy/kafka/`](../deploy/kafka/) |
 | [03 — Istio mTLS](lab-03-istio-mtls.md) | Istio, mTLS STRICT, *AuthorizationPolicy* | **4** | [3](../modulos/modulo-03-service-mesh.md) | exemplos em `deploy/istio/` |
-| [04 — Redis, Postgres, idempotência](lab-04-redis-postgres-idempotencia.md) | Redis, Postgres, locks | **2** | [4](../modulos/modulo-04-consistencia.md) | a implementar no *Pix* |
-| [05 — Canary e GitOps](lab-05-canary-gitops.md) | Istio VS, Argo CD (opcional) | **5–6** | [5](../modulos/modulo-05-deploy-gitops.md) | *credito* v1/v2 por env |
+| [04 — Redis, Postgres, idempotência](lab-04-redis-postgres-idempotencia.md) | Redis, Postgres, locks | **2** | [4](../modulos/modulo-04-consistencia.md) | `idempotency.py` + `models.py` |
+| [05 — Canary e GitOps](lab-05-canary-gitops.md) | Istio VS, Argo CD | **5–6** | [5](../modulos/modulo-05-deploy-gitops.md) | *credito* v1/v2 por env |
 | [06 — Backstage catálogo](lab-06-backstage-catalogo.md) | Backstage, TechDocs | **7** | [6](../modulos/modulo-06-backstage.md) | `catalog-info.yaml` pronto |
-| [07a — Segredos](lab-07a-segredos-external-secrets.md) | Vault / External Secrets | transversal | [7](../modulos/modulo-07-operacao-conformidade.md) | a criar em `deploy/` |
-| [07b — Outbox](lab-07b-outbox-kafka.md) | transactional outbox | transversal | [7](../modulos/modulo-07-operacao-conformidade.md) | a implementar |
-| [07c — Pact](lab-07c-pact-contratos.md) | Pact, CI | transversal | [7](../modulos/modulo-07-operacao-conformidade.md) | a criar em `apps/` |
-| [07d — Kyverno](lab-07d-kyverno-admission.md) | Kyverno | transversal | [7](../modulos/modulo-07-operacao-conformidade.md) | `deploy/policies/` |
-| [07e — DR](lab-07e-disaster-recovery.md) | RPO/RTO, restore Postgres | transversal | [7](../modulos/modulo-07-operacao-conformidade.md) | documental |
-| [07f — PII em logs/traces](lab-07f-pii-observabilidade.md) | structlog, OTel Collector, tail sampling | transversal | [7](../modulos/modulo-07-operacao-conformidade.md) | a configurar |
-| [07g — SRE prático](lab-07g-sre-praticas.md) | incident command, postmortem, burn rate | transversal | [7](../modulos/modulo-07-operacao-conformidade.md) | documental |
+| [07a — Segredos](lab-07a-segredos-external-secrets.md) | Vault / External Secrets | transversal | [7](../modulos/modulo-07-operacao-conformidade.md) | lab + Helm |
+| [07b — Outbox](lab-07b-outbox-kafka.md) | transactional outbox | transversal | [7](../modulos/modulo-07-operacao-conformidade.md) | `pix_service` + `worker-outbox-relay` |
+| [07c — Pact](lab-07c-pact-contratos.md) | Pact, CI | transversal | [7](../modulos/modulo-07-operacao-conformidade.md) | lab + testes de contrato |
+| [07d — Kyverno](lab-07d-kyverno-admission.md) | Kyverno | transversal | [7](../modulos/modulo-07-operacao-conformidade.md) | `deploy/policies/kyverno/` |
+| [07e — DR](lab-07e-disaster-recovery.md) | RPO/RTO, restore Postgres | transversal | [7](../modulos/modulo-07-operacao-conformidade.md) | runbook + simulação |
+| [07f — PII em logs/traces](lab-07f-pii-observabilidade.md) | structlog, OTel Collector, tail sampling | transversal | [7](../modulos/modulo-07-operacao-conformidade.md) | `deploy/observability/` |
+| [07g — SRE prático](lab-07g-sre-praticas.md) | incident command, postmortem, burn rate | transversal | [7](../modulos/modulo-07-operacao-conformidade.md) | exercícios de operação |
 
 ## Exercícios avançados (nível SRE)
 
@@ -41,7 +41,7 @@ Leia o [Módulo 0](../modulos/modulo-00-fundamentos-distribuidos.md). Siga as **
 
 ## Conhecimento do curso (não é “pré-requisito de um lab”)
 
-Base comum: [`ebook/PRE-REQUISITOS.md`](../ebook/PRE-REQUISITOS.md) — HTTP, Docker, Kubernetes básico, Python, SQL. Leia **uma vez** no início; os labs não repetem isso inteiro.
+Base comum: blocos *Fundamentos* no ebook ([índice](../ebook/capitulos/fundamentos-indice.md)) + [`ebook/PRE-REQUISITOS.md`](../ebook/PRE-REQUISITOS.md) (máquina e ritmo). Os labs aprofundam o passo a passo, não substituem a teoria do módulo.
 
 ## Convenção em cada lab
 

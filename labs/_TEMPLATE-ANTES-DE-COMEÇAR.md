@@ -24,5 +24,7 @@ Use **três blocos separados**. Leitor confunde quando tudo vira uma lista só.
 - …
 ```
 
-**Curso inteiro:** conhecimento base (HTTP, Docker, K8s, Python, SQL) → [`ebook/PRE-REQUISITOS.md`](../ebook/PRE-REQUISITOS.md).  
+**Curso inteiro:** fundamentos por módulo → [`ebook/capitulos/fundamentos-indice.md`](../ebook/capitulos/fundamentos-indice.md); máquina/ritmo → [`ebook/PRE-REQUISITOS.md`](../ebook/PRE-REQUISITOS.md).  
 **Este lab:** só o que é específico da ferramenta ou do passo de hoje.
+
+Estrutura do lab: **Objetivo** (com “ao terminar” e tempo estimado) → **Antes de começar** → **Visão/arquitetura** (quando fizer sentido) → **Passos** (com “o que observar” após comandos críticos) → **Deu certo quando** → **Troubleshooting** → **Próximo passo**.

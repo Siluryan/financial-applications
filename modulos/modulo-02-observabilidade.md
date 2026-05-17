@@ -14,7 +14,7 @@ O cliente vê o débito na tela; o destinatário diz que não recebeu. O fluxo p
 
 **OpenTelemetry (OTel)** é o formato padrão para enviar os três. **Consumer lag** é “quantas cartas ainda na caixa postal” — fila acumulada esperando processamento.
 
-Este capítulo instrumenta o lab e segue o **`trace_id`** (identificador único da jornada inteira) entre HTTP e mensagens.
+Este capítulo instrumenta o lab e segue o **`trace_id`** (identificador da requisição de ponta a ponta) entre HTTP e mensagens.
 
 > **Figuras deste capítulo:** três pilares · pipeline OTel · trace *Pix* · propagação Kafka · RED/USE · cardinalidade · sampling · partições/ISR · consumer group · rebalance · DLQ.
 
@@ -36,7 +36,7 @@ O poder aparece quando os três compartilham o mesmo `trace_id`.
 
 ### Exemplars: da métrica ao trace em um clique
 
-**Exemplars** ligam um ponto de série temporal (ex.: p99 de latência às 14:03) a um **trace_id** concreto daquele instante. No Grafana, ao inspecionar um histograma Prometheus com exemplars habilitados, você “mergulha” no Jaeger/Tempo sem adivinhar qual requisição causou o pico.
+**Exemplars** ligam um ponto de série temporal (ex.: p99 de latência às 14:03) a um **trace_id** concreto daquele instante. No Grafana, ao inspecionar um histograma Prometheus com exemplars habilitados, abre-se o trace correspondente no Jaeger ou Tempo sem procurar manualmente a requisição culpada.
 
 Requisitos práticos:
 
@@ -44,7 +44,7 @@ Requisitos práticos:
 - backend que preserve exemplars (Prometheus 2.26+, Grafana 9+);
 - **sampling** que ainda grave o trace referenciado — exemplar inútil se o trace foi descartado.
 
-Em incidentes de *Pix*, o fluxo maduro é: SLO queimando → gráfico RED → exemplar no p99 → span `limites.check` com timeout.
+Em incidentes de *Pix*, a sequência usual é: SLO em risco → gráfico RED → exemplar no p99 → span `limites.check` com timeout.
 
 ### SLI, SLO e SLA
 
@@ -67,6 +67,17 @@ Como delivery: “entrega em até 40 min”.
 ![Pipeline OTel Collector](diagramas/m02-otel-pipeline.png)
 
 No Python, pacotes de instrumentação criam spans automaticamente; no publish Kafka manual, nomeie o span (`kafka.publish`, `outbox.publish`). O Collector aplica **sampling** (gravar só uma fração dos traces para não explodir custo — no lab, 100 % ajuda a aprender), remove **PII** (dados pessoais, Módulo 7) e corta **cardinalidade** explosiva (ver seção abaixo).
+
+### OpenTelemetry: onde fica no código
+
+| Serviço | Arquivo | Responsabilidade |
+|---------|---------|------------------|
+| *Pix* | `apps/servico-pix/app/telemetry.py` | `setup_telemetry()` + `HTTPXClientInstrumentor` (trace até *Limites*) + FastAPI |
+| *Pix* | `apps/servico-pix/app/main.py` | Chama setup/instrumentação; **não** duplique bootstrap OTel no handler |
+| *Limites* | `apps/servico-limites/app/telemetry.py` | Export OTLP + FastAPI |
+| Relay | `apps/worker-outbox-relay/app/telemetry.py` | Span `outbox.publish` |
+
+Ative com `OTEL_EXPORTER_OTLP_ENDPOINT` e `OTEL_SERVICE_NAME`. Sem endpoint, o código não exporta (comportamento seguro para lab local). Detalhes: [lab 02](../labs/lab-02-opentelemetry-jaeger.md).
 
 ### Prometheus, Loki e Grafana
 

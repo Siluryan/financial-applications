@@ -1,6 +1,6 @@
 # Módulo 0 — Fundamentos de sistemas distribuídos
 
-**Leia antes da Onda 0.** Laboratório: [lab-00 — Banco mínimo no kind](../labs/lab-00-kind-banco-minimo.md).
+Este capítulo de teoria antecede o **Laboratório 00** do Módulo 0 ([banco mínimo no *kind*](../labs/lab-00-kind-banco-minimo.md)). Leia-o antes de subir o cluster.
 
 ## O banco que virou muitas salas
 
@@ -85,7 +85,7 @@ Como “entrega em 40 min” no delivery: **SLI** é o que você mede; **SLO**, 
 
 ## Próximo passo
 
-[Onda 0](../labs/lab-00-kind-banco-minimo.md), depois [Módulo 1](modulo-01-resiliencia.md).
+[Lab 00](../labs/lab-00-kind-banco-minimo.md), depois [Módulo 1](modulo-01-resiliencia.md).
 
 ## Leitura complementar
 

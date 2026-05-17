@@ -81,4 +81,4 @@ Para cada ferramenta, uma página respondendo:
 - Nubank / Mercado Livre — plataforma e eventos (posts públicos)
 - Google SRE — error budgets e postmortem
 
-Registre no caderno: qual problema cada caso ilustra e qual ferramenta do lab se aplica.
+Registre no relatório: qual problema cada caso ilustra e qual ferramenta do lab se aplica.

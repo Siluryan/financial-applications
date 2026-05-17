@@ -20,7 +20,7 @@ No lab:
 - **idempotência rápida** (`SET NX`) antes de bater no Postgres;
 - TTL de chaves — “protocolo válido por 24 h”.
 
-Analogia: Redis é o **post-it na parede**; Postgres é o **livro contábil**.
+Redis funciona como o **post-it na parede**; Postgres, como o **livro contábil**.
 
 ## Por que os dois juntos
 

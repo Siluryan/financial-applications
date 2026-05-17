@@ -11,7 +11,7 @@ Vigência plena a partir de 2020. Trata dado pessoal como direito do titular, n�
 
 **Base legal** — não basta “precisamos para debug”; incidente com log cheio de PII vira passivo jurídico e reputacional.
 
-Analogia: log e trace são **corredor do banco** — câmera não grava conversa íntima do cliente sem necessidade.
+Log e trace são o **corredor do banco**: a câmera não grava conversa íntima do cliente sem necessidade.
 
 ## PCI-DSS e cartão
 

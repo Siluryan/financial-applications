@@ -46,7 +46,7 @@ Referência rápida dos termos usados neste livro. Cada entrada traz o significa
 
 **Chaos engineering** — Injetar falhas controladas para aprender antes do incidente real. *Simulado de incêndio no prédio.* → [Módulo 7](../modulos/modulo-07-operacao-conformidade.md), [Exercícios de falha](../labs/EXERCICIOS-FALHA-E-TROUBLESHOOTING.md)
 
-**Circuit breaker** — Parar de chamar dependência doente após limiar de erros; falha rápida. *Disjuntor da casa que salta no curto.* → [Módulo 1](../modulos/modulo-01-resiliencia.md)
+**Circuit breaker** — Parar de chamar dependência doente após limiar de erros; falha rápida. *Disjuntor da casa que salta no curto.* Implementação no lab: **pybreaker** em `apps/servico-pix/app/resilience.py`. → [Módulo 1](../modulos/modulo-01-resiliencia.md#pybreaker-o-que-é-e-onde-fica-no-código)
 
 **Clock skew** — Relógios de máquinas diferentes por alguns ms; não use hora como ordem global. *Relógios de parede que não batem.* → [Módulo 0](../modulos/modulo-00-fundamentos-distribuidos.md)
 
@@ -206,6 +206,8 @@ Referência rápida dos termos usados neste livro. Cada entrada traz o significa
 
 **Pact** — Teste de contrato consumidor/provedor versionado no CI. *Combinado escrito antes da festa.* → [Módulo 7](../modulos/modulo-07-operacao-conformidade.md), [Lab 07c](../labs/lab-07c-pact-contratos.md)
 
+**pybreaker** — Biblioteca Python de circuit breaker; envolve a função httpx com `limites_breaker.call(...)`, não o cliente isolado. *Disjuntor plugado na função que liga para *Limites*.* → [Módulo 1](../modulos/modulo-01-resiliencia.md#pybreaker-o-que-é-e-onde-fica-no-código), `apps/servico-pix/app/resilience.py`
+
 **PAN** — Número completo do cartão (PCI). *Nunca trafegar em claro; usar token.* → [Módulo 7](../modulos/modulo-07-operacao-conformidade.md)
 
 **Partição (rede)** — Nós que não se falam temporariamente (P do CAP). *Linha entre agências cortada.* → [Módulo 0](../modulos/modulo-00-fundamentos-distribuidos.md)
@@ -289,6 +291,8 @@ Referência rápida dos termos usados neste livro. Cada entrada traz o significa
 ---
 
 ## T
+
+**Tenacity** — Biblioteca Python de retry com backoff e jitter (`@retry` em `_fetch_limits_sync`). *Ligar de novo com espera crescente e segundos aleatórios.* → [Módulo 1](../modulos/modulo-01-resiliencia.md#pybreaker-o-que-é-e-onde-fica-no-código), `apps/servico-pix/app/resilience.py`
 
 **TechDocs** — Documentação Markdown do repo renderizada no Backstage. *Manual na prateleira da loja.* → [Módulo 6](../modulos/modulo-06-backstage.md)
 

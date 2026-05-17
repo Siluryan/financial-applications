@@ -5,7 +5,7 @@ APIs **FastAPI** para a espinha dorsal do [`PLANO_DE_ESTUDO.md`](../PLANO_DE_EST
 | Serviço | Porta (host Compose) | Função |
 |---------|----------------------|--------|
 | `servico-limites` | 8001 | `GET /v1/limits/{account_id}` — mock + traces OTel |
-| `servico-pix` | 8000 | `POST /v1/pix` — **Tenacity**, **pybreaker**, idempotência, **outbox** |
+| `servico-pix` | 8000 | `POST /v1/pix` — chamada a limites via `app/resilience.py` (**Tenacity** + **pybreaker** + **httpx**), idempotência, **outbox** |
 | `worker-outbox-relay` | — | Publica `outbox` → Kafka (span `outbox.publish`) |
 | `servico-credito` | 8002 | `GET /v1/score` — canary (`SERVICE_VERSION`) |
 
@@ -31,6 +31,22 @@ APIs **FastAPI** para a espinha dorsal do [`PLANO_DE_ESTUDO.md`](../PLANO_DE_EST
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | — | ex. `http://otel-collector:4317` |
 | `BREAKER_FAIL_MAX` | `5` | Falhas antes de abrir circuito |
 | `BREAKER_RESET_TIMEOUT` | `30` | Segundos em open → half-open |
+| `RETRY_MAX_ATTEMPTS` | `3` | Tentativas Tenacity antes de falha definitiva |
+
+### Chamada a `servico-limites` (resiliência)
+
+- **`app/resilience.py`** — `limites_breaker.call(_fetch_limits_sync, …)`; dentro de `_fetch_limits_sync`: `httpx.Client` + `@retry` (Tenacity).
+- **`app/pix_service.py`** — só `await fetch_limits(account_id)`; trata `pybreaker.CircuitBreakerError`.
+
+Detalhes e diagrama: [Módulo 1 — pybreaker](../modulos/modulo-01-resiliencia.md#pybreaker-o-que-é-e-onde-fica-no-código).
+
+### Idempotência e outbox
+
+- **`app/idempotency.py`** — cache Redis + `idempotency_records` (Postgres).
+- **`app/pix_service.py`** — outbox na mesma transação que `PixTransfer` quando `PIX_USE_OUTBOX=true`.
+- **`apps/worker-outbox-relay/`** — publica pendências no Kafka.
+
+Labs: [04](../labs/lab-04-redis-postgres-idempotencia.md) · [07b](../labs/lab-07b-outbox-kafka.md).
 
 ## Variáveis — `worker-outbox-relay`
 
